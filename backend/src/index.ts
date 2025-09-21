@@ -31,9 +31,10 @@ app.use(
 
 // ✅ API Routes
 app.get("/", (req, res) => {
-    res.json({ 
+    res.json({
         message: "UPI Gateway API is running",
         timestamp: new Date().toISOString(),
+        version: "1.0.0",
         env: {
             hasMongoUri: !!process.env.MONGO_URI,
             hasJwtSecret: !!process.env.JWT_SECRET,
