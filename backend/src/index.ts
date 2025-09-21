@@ -1,5 +1,5 @@
 import cors from "cors";
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.js";
@@ -7,7 +7,7 @@ import dashboardRouter from "./routes/dashboard.js";
 import ordersRouter from "./routes/order.js";
 import usersRouter from "./routes/users.js";
 
-dotenv.config();
+config();
 
 const app = express();
 app.use(express.json());
@@ -30,15 +30,15 @@ app.use(
 );
 
 // ✅ API Routes
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
     res.json({
         message: "UPI Gateway API is running",
         timestamp: new Date().toISOString(),
         version: "1.0.0",
         env: {
-            hasMongoUri: !!process.env.MONGO_URI,
-            hasJwtSecret: !!process.env.JWT_SECRET,
-            hasAppBaseUrl: !!process.env.APP_BASE_URL
+            hasMongoUri: Boolean(process.env.MONGO_URI),
+            hasJwtSecret: Boolean(process.env.JWT_SECRET),
+            hasAppBaseUrl: Boolean(process.env.APP_BASE_URL)
         }
     });
 });

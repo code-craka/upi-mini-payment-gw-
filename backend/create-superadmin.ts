@@ -22,10 +22,11 @@ UserSchema.pre("save", async function (next) {
 
 const User = mongoose.model("User", UserSchema);
 
-const createSuperAdmin = async () => {
+const createSuperAdmin = async (): Promise<void> => {
     try {
         console.log("🔌 Connecting to MongoDB...");
-        console.log("MongoDB URI:", process.env.MONGO_URI?.substring(0, 20) + "...");
+        const uriPreview = process.env.MONGO_URI?.substring(0, 20) || '';
+        console.log("MongoDB URI:", uriPreview, "...");
         
         await mongoose.connect(process.env.MONGO_URI || "");
         console.log("✅ Connected to MongoDB");
