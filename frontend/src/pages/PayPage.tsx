@@ -27,7 +27,7 @@ export default function PayPage() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(10 * 60); // display-only timer
 
-    const api = import.meta.env.VITE_API_URL || "https://backend-8z1oresf2-techsci.vercel.app";
+    const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
 
     // Fetch order details
     useEffect(() => {

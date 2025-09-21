@@ -16,7 +16,7 @@ export default function UserManagement() {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState<"user" | "admin">("user");
 
-    const api = import.meta.env.VITE_API_URL || "https://backend-8z1oresf2-techsci.vercel.app";
+    const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
     const token = localStorage.getItem("token");
 
     const fetchUsers = async () => {
