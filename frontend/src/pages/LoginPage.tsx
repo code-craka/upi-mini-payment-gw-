@@ -12,6 +12,8 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        console.log("API URL:", api);
+        console.log("Full login URL:", `${api}/api/auth/login`);
         try {
             const res = await axios.post(`${api}/api/auth/login`, {
                 username,
