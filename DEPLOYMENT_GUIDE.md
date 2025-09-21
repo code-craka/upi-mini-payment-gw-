@@ -7,6 +7,7 @@ The "invalid credentials" error is occurring because of missing environment vari
 ## 🔧 Step-by-Step Fix
 
 ### 1. Set Up MongoDB Database
+
 1. Go to [MongoDB Atlas](https://cloud.mongodb.com/)
 2. Create a cluster (if you don't have one)
 3. Create a database user with read/write permissions
@@ -116,16 +117,20 @@ npm run build
 ## 🐛 Common Issues & Solutions
 
 ### Issue: Still getting "invalid credentials"
+
 - **Solution**: Check Vercel function logs for detailed errors
 - **Check**: Ensure MONGO_URI is correctly set with proper credentials
 
 ### Issue: CORS errors
+
 - **Solution**: Make sure APP_BASE_URL matches your frontend domain exactly
 
 ### Issue: JWT errors  
+
 - **Solution**: Ensure JWT_SECRET is set and is at least 32 characters long
 
 ### Issue: Database connection timeout
+
 - **Solution**: Check MongoDB Atlas network access settings (allow 0.0.0.0/0 for Vercel)
 
 ## 📱 Testing Locally
