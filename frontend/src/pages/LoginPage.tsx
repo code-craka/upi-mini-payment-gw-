@@ -7,7 +7,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const api = import.meta.env.VITE_API_URL;
+    const api = import.meta.env.VITE_API_URL || "https://backend-8z1oresf2-techsci.vercel.app";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

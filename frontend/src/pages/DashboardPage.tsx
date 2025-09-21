@@ -11,7 +11,7 @@ interface Stats {
 export default function DashboardPage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
-    const api = import.meta.env.VITE_API_URL;
+    const api = import.meta.env.VITE_API_URL || "https://backend-8z1oresf2-techsci.vercel.app";
     const token = localStorage.getItem("token");
 
     useEffect(() => {

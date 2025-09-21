@@ -10,7 +10,7 @@ export default function PaymentGenerator() {
     const [result, setResult] = useState<CreateOrderResp | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const api = import.meta.env.VITE_API_URL;
+    const api = import.meta.env.VITE_API_URL || "https://backend-8z1oresf2-techsci.vercel.app";
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
