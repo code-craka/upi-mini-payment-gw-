@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
+import { config } from "dotenv";
 
-dotenv.config({ path: '.env.local' });
+config({ path: '.env.local' });
 
 // Define User schema inline
 const UserSchema = new mongoose.Schema(
@@ -55,7 +55,9 @@ const createSuperAdmin = async () => {
         
     } catch (error) {
         console.error("❌ Error creating superadmin:", error);
-        console.error("Full error:", error.message);
+        if (error instanceof Error) {
+            console.error("Full error:", error.message);
+        }
     } finally {
         await mongoose.disconnect();
         console.log("🔌 Disconnected from MongoDB");
