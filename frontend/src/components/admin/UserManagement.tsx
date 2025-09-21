@@ -1,6 +1,13 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import type { IUser } from "../../../../backend/src/models/User";
+
+interface IUser {
+    _id: string;
+    username: string;
+    role: "admin" | "user";
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 export default function UserManagement() {
     const [users, setUsers] = useState<IUser[]>([]);
