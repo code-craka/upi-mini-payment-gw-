@@ -12,20 +12,35 @@ config();
 const app = express();
 app.use(express.json());
 
-// ✅ Allow frontend from LAN (PC + Phone)
-const allowedOrigin = process.env.APP_BASE_URL || "*";
+// ✅ Allow frontend from multiple domains
+const allowedOrigins = [
+    process.env.APP_BASE_URL,
+    "https://negoman.com",
+    "https://www.negoman.com",
+    "http://localhost:5173", // for local development
+    "http://localhost:3000"  // for local development
+].filter(Boolean);
+
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow no-origin requests (mobile browsers sometimes send no origin)
-            if (!origin || allowedOrigin === "*" || origin === allowedOrigin) {
+            // Allow no-origin requests (mobile browsers, Postman, etc.)
+            if (!origin) {
+                callback(null, true);
+                return;
+            }
+
+            // Check if origin is in allowed list
+            if (allowedOrigins.includes(origin)) {
                 callback(null, true);
             } else {
+                console.log(`CORS blocked origin: ${origin}`);
                 callback(new Error("Not allowed by CORS"));
             }
         },
-        methods: ["GET", "POST", "PUT", "DELETE"],
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
