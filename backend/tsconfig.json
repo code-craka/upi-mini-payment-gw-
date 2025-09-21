@@ -31,6 +31,6 @@
         "moduleDetection": "force",
         "skipLibCheck": true
     },
-    "include": ["src/**/*.ts", "./server.ts"],
+    "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
 }
