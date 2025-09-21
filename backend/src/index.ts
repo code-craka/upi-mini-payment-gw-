@@ -30,6 +30,18 @@ app.use(
 );
 
 // ✅ API Routes
+app.get("/", (req, res) => {
+    res.json({ 
+        message: "UPI Gateway API is running",
+        timestamp: new Date().toISOString(),
+        env: {
+            hasMongoUri: !!process.env.MONGO_URI,
+            hasJwtSecret: !!process.env.JWT_SECRET,
+            hasAppBaseUrl: !!process.env.APP_BASE_URL
+        }
+    });
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/orders", ordersRouter);

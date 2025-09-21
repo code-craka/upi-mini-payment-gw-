@@ -25,6 +25,7 @@ export const protect = (
         req.user = decoded;
         next();
     } catch (err) {
+        console.error("JWT verification failed:", err);
         return res
             .status(401)
             .json({ message: "not authorized, token failed" });
