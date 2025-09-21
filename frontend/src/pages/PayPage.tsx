@@ -149,7 +149,8 @@ export default function PayPage() {
     };
 
     return (
-        <div className="max-w-lg w-full mx-auto space-y-4 rounded-xl p-4">
+        <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center p-4">
+            <div className="max-w-lg w-full mx-auto space-y-4 bg-white rounded-xl p-6 shadow-lg">
             {/* Timer Header */}
             <div className="flex justify-between items-center">
                 <p className="text-gray-600 text-sm">
@@ -241,6 +242,13 @@ export default function PayPage() {
                 >
                     Submit UTR
                 </button>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center mt-8 text-white">
+                <p className="text-sm opacity-90">© 2024 UPI Gateway. Secured payment link generation.</p>
+                <p className="text-xs opacity-75 mt-1">Built with modern web technologies for secure UPI transactions</p>
+            </div>
             </div>
         </div>
     );

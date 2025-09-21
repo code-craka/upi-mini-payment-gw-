@@ -11,9 +11,9 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/pay/:orderId" element={<PayPage />} />
                 <Route path="/" element={<Layout />}>
                     <Route index element={<PaymentGenerator />} />
-                    <Route path="pay/:orderId" element={<PayPage />} />
                     <Route path="/admin" element={<AdminRoute />}>
                         <Route path="dashboard" element={<DashboardPage />} />
                     </Route>
