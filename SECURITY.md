@@ -46,11 +46,13 @@ We encourage responsible disclosure of security vulnerabilities. Please follow t
 #### How to Report
 
 **🔒 Private Reporting (Preferred)**
+
 - **Email**: [hello@techsci.io](mailto:hello@techsci.io)
 - **Subject**: `[SECURITY] Vulnerability Report - UPI Mini Gateway`
 - **Response Time**: Within 24 hours
 
 **📋 Report Template**
+
 ```
 Subject: [SECURITY] Vulnerability Report - UPI Mini Gateway
 
@@ -86,6 +88,7 @@ Subject: [SECURITY] Vulnerability Report - UPI Mini Gateway
 #### What NOT to Report
 
 ❌ **Issues that are NOT security vulnerabilities:**
+
 - Feature requests
 - Bug reports without security implications
 - Questions about implementation
@@ -115,6 +118,7 @@ Currently, we don't have a formal bug bounty program, but we recognize and appre
 ### Authentication & Authorization
 
 #### JWT Authentication
+
 ```typescript
 // Secure JWT implementation
 const token = jwt.sign(
@@ -130,18 +134,21 @@ const token = jwt.sign(
 ```
 
 **Security Measures:**
+
 - ✅ Secure JWT secrets (256-bit minimum)
 - ✅ Token expiration (24 hours)
 - ✅ Stateless authentication
 - ✅ Role-based access control
 
 #### Password Security
+
 ```typescript
 // bcrypt with salt rounds
 const hashedPassword = await bcrypt.hash(password, 12);
 ```
 
 **Security Measures:**
+
 - ✅ bcrypt hashing with 12 salt rounds
 - ✅ Password complexity requirements
 - ✅ Account lockout after failed attempts
@@ -150,6 +157,7 @@ const hashedPassword = await bcrypt.hash(password, 12);
 ### Input Validation & Sanitization
 
 #### Request Validation
+
 ```typescript
 // Express validator middleware
 const validatePayment = [
@@ -160,6 +168,7 @@ const validatePayment = [
 ```
 
 **Protection Against:**
+
 - ✅ SQL Injection
 - ✅ NoSQL Injection
 - ✅ XSS (Cross-Site Scripting)
@@ -169,6 +178,7 @@ const validatePayment = [
 ### API Security
 
 #### Rate Limiting
+
 ```typescript
 // Rate limiting configuration
 const limiter = rateLimit({
@@ -181,6 +191,7 @@ const limiter = rateLimit({
 ```
 
 #### CORS Configuration
+
 ```typescript
 // Secure CORS setup
 const corsOptions = {
@@ -196,12 +207,14 @@ const corsOptions = {
 ### Data Protection
 
 #### Database Security
+
 - ✅ **Encrypted Connections**: SSL/TLS for MongoDB Atlas
 - ✅ **Access Control**: Database user permissions
 - ✅ **Data Encryption**: Encryption at rest
 - ✅ **Backup Encryption**: Encrypted database backups
 
 #### Environment Security
+
 ```bash
 # Secure environment variables
 JWT_SECRET=256-bit-random-string
@@ -216,6 +229,7 @@ SENTRY_DSN=https://...
 ### Frontend Security
 
 #### Content Security Policy (CSP)
+
 ```typescript
 // CSP headers
 const cspDirectives = {
@@ -228,6 +242,7 @@ const cspDirectives = {
 ```
 
 #### XSS Protection
+
 - ✅ **Input Sanitization**: All user inputs sanitized
 - ✅ **Output Encoding**: Proper HTML encoding
 - ✅ **CSP Headers**: Content Security Policy
@@ -236,6 +251,7 @@ const cspDirectives = {
 ### Backend Security
 
 #### Security Headers
+
 ```typescript
 // Security middleware
 app.use(helmet({
@@ -248,6 +264,7 @@ app.use(helmet({
 ```
 
 #### API Security
+
 - ✅ **Authentication Required**: All protected endpoints
 - ✅ **Input Validation**: Comprehensive validation
 - ✅ **Error Handling**: Secure error messages
@@ -256,12 +273,14 @@ app.use(helmet({
 ### Infrastructure Security
 
 #### Deployment Security
+
 - ✅ **HTTPS Only**: SSL/TLS encryption
 - ✅ **Secure Headers**: Security headers configured
 - ✅ **Environment Isolation**: Separate staging/production
 - ✅ **Access Control**: Limited deployment access
 
 #### Monitoring & Logging
+
 - ✅ **Error Tracking**: Sentry integration
 - ✅ **Security Logs**: Authentication and authorization events
 - ✅ **Performance Monitoring**: Real-time monitoring
@@ -274,6 +293,7 @@ app.use(helmet({
 ### Automated Security Scanning
 
 #### GitHub Security Features
+
 ```yaml
 # CodeQL Analysis
 - name: Initialize CodeQL
@@ -284,12 +304,14 @@ app.use(helmet({
 ```
 
 **Enabled Features:**
+
 - ✅ **CodeQL**: Weekly security scans
 - ✅ **Dependency Scanning**: Automated vulnerability detection
 - ✅ **Secret Scanning**: Credential leak detection
 - ✅ **Security Advisories**: GitHub security alerts
 
 #### Dependency Security
+
 ```bash
 # Regular security audits
 npm audit --audit-level moderate
@@ -299,12 +321,14 @@ npm outdated
 ### Real-time Monitoring
 
 #### Sentry Security Monitoring
+
 - ✅ **Error Tracking**: Real-time error detection
 - ✅ **Performance Issues**: Performance degradation alerts
 - ✅ **Security Events**: Authentication failures
 - ✅ **User Sessions**: Session replay for debugging
 
 #### Security Metrics
+
 | Metric | Threshold | Alert |
 |--------|-----------|-------|
 | Failed Login Attempts | >10/hour | Immediate |
@@ -319,6 +343,7 @@ npm outdated
 ### For Developers
 
 #### Secure Coding Practices
+
 ```typescript
 // ✅ Good: Parameterized query
 const user = await User.findOne({ email: email });
@@ -328,6 +353,7 @@ const query = `SELECT * FROM users WHERE email = '${email}'`;
 ```
 
 #### Security Checklist
+
 - [ ] **Input Validation**: All inputs validated and sanitized
 - [ ] **Authentication**: Proper authentication mechanisms
 - [ ] **Authorization**: Role-based access control
@@ -338,6 +364,7 @@ const query = `SELECT * FROM users WHERE email = '${email}'`;
 ### For Deployments
 
 #### Production Security
+
 - [ ] **HTTPS**: SSL/TLS certificates configured
 - [ ] **Environment Variables**: Secure secret management
 - [ ] **Database**: Encrypted connections and backups
@@ -345,6 +372,7 @@ const query = `SELECT * FROM users WHERE email = '${email}'`;
 - [ ] **Updates**: Regular security updates applied
 
 #### Security Configuration
+
 ```typescript
 // Production security configuration
 if (process.env.NODE_ENV === 'production') {
@@ -357,10 +385,12 @@ if (process.env.NODE_ENV === 'production') {
 ### For Users
 
 #### Account Security
+
 - ✅ **Strong Passwords**: Minimum 8 characters with complexity
 - ✅ **Secure Communication**: Always use HTTPS
 - ✅ **Regular Updates**: Keep browsers and software updated
 - ✅ **Suspicious Activity**: Report unusual activity immediately
+- ✅ **No Default Credentials**: Default credentials removed from UI and documentation
 
 ---
 
@@ -369,12 +399,14 @@ if (process.env.NODE_ENV === 'production') {
 ### Security Standards
 
 #### Industry Standards
+
 - **OWASP Top 10**: Protection against common vulnerabilities
 - **PCI DSS**: Payment card industry standards (where applicable)
 - **ISO 27001**: Information security management
 - **NIST Framework**: Cybersecurity framework guidelines
 
 #### Security Controls
+
 | Control | Implementation | Status |
 |---------|----------------|--------|
 | Access Control | JWT + RBAC | ✅ Implemented |
@@ -386,12 +418,14 @@ if (process.env.NODE_ENV === 'production') {
 ### Data Privacy
 
 #### GDPR Compliance
+
 - ✅ **Data Minimization**: Only necessary data collected
 - ✅ **Consent Management**: Clear consent mechanisms
 - ✅ **Data Retention**: Automatic data deletion policies
 - ✅ **Right to Deletion**: User data deletion on request
 
 #### Data Handling
+
 ```typescript
 // Secure data handling
 const sensitiveData = {
@@ -408,12 +442,14 @@ console.log('User action:', { userId: user.id, action: 'login' });
 ### Security Incident Response Plan
 
 #### Incident Classification
+
 - **Critical**: Active exploitation, data breach
 - **High**: Potential data exposure, system compromise
 - **Medium**: Configuration issues, minor vulnerabilities
 - **Low**: Informational, documentation updates
 
 #### Response Timeline
+
 | Severity | Detection | Response | Resolution |
 |----------|-----------|----------|------------|
 | Critical | Immediate | <1 hour | <24 hours |
@@ -424,11 +460,13 @@ console.log('User action:', { userId: user.id, action: 'login' });
 ### Emergency Contacts
 
 #### Security Team
+
 - **Primary**: [hello@techsci.io](mailto:hello@techsci.io)
 - **Maintainer**: Sayem Abdullah Rihan ([@code-craka](https://github.com/code-craka))
 - **Response Time**: 24/7 for critical issues
 
 #### Escalation Process
+
 1. **Initial Response**: Security team assessment
 2. **Impact Analysis**: Scope and severity determination
 3. **Containment**: Immediate threat mitigation
@@ -443,11 +481,13 @@ console.log('User action:', { userId: user.id, action: 'login' });
 ### Training & Documentation
 
 #### Security Guidelines
+
 - [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [Node.js Security Best Practices](https://nodejs.org/en/docs/guides/security/)
 - [React Security Best Practices](https://snyk.io/blog/10-react-security-best-practices/)
 
 #### Security Tools
+
 - **Static Analysis**: CodeQL, ESLint security rules
 - **Dependency Scanning**: npm audit, Snyk
 - **Runtime Protection**: Helmet.js, CORS
@@ -456,6 +496,7 @@ console.log('User action:', { userId: user.id, action: 'login' });
 ### Security Updates
 
 #### Stay Informed
+
 - **GitHub Security Advisories**: Repository security alerts
 - **Security Newsletters**: Industry security updates
 - **CVE Databases**: Common Vulnerabilities and Exposures
@@ -472,6 +513,7 @@ We acknowledge security researchers who have responsibly disclosed vulnerabiliti
 *Currently no public acknowledgments. Be the first to help secure our platform!*
 
 ### Recognition Criteria
+
 - **Responsible Disclosure**: Following our security policy
 - **Valid Vulnerability**: Confirmed security issue
 - **Constructive Report**: Clear, detailed vulnerability report
@@ -484,12 +526,14 @@ We acknowledge security researchers who have responsibly disclosed vulnerabiliti
 ### Security Team
 
 **Sayem Abdullah Rihan**
+
 - **Role**: Lead Developer & Security Officer
 - **Email**: [hello@techsci.io](mailto:hello@techsci.io)
 - **GitHub**: [@code-craka](https://github.com/code-craka)
 - **PGP Key**: Available upon request
 
 ### Emergency Response
+
 - **Critical Issues**: [hello@techsci.io](mailto:hello@techsci.io)
 - **Response Time**: <24 hours (typically much faster)
 - **Escalation**: Direct communication for critical vulnerabilities
@@ -501,6 +545,7 @@ We acknowledge security researchers who have responsibly disclosed vulnerabiliti
 ### Safe Harbor
 
 We support responsible security research and will not pursue legal action against researchers who:
+
 - Follow responsible disclosure guidelines
 - Do not access, modify, or delete user data
 - Do not disrupt our services
@@ -509,6 +554,7 @@ We support responsible security research and will not pursue legal action agains
 ### Scope
 
 This security policy applies to:
+
 - ✅ **Main Repository**: UPI Mini Gateway codebase
 - ✅ **Production Domains**: pay.loanpaymentsystem.xyz, api.loanpaymentsystem.xyz
 - ✅ **Dependencies**: Third-party packages and services

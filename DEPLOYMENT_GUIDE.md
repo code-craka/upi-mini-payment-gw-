@@ -54,6 +54,7 @@ npm run create-admin
 ```
 
 #### Option B: Add a temporary endpoint (Remove after use)
+
 Add this to your `backend/src/routes/auth.ts`:
 
 ```typescript
@@ -67,7 +68,7 @@ router.post("/create-superadmin", async (req: Request, res: Response) => {
         
         await User.create({
             username: "superadmin",
-            password: "admin123", // Change this!
+            password: "your-secure-password", // Use a strong password!
             role: "admin"
         });
         
@@ -86,9 +87,7 @@ Then call this endpoint once: `POST https://your-backend.vercel.app/api/auth/cre
 ### 5. Test the Fix
 
 1. Deploy both frontend and backend to Vercel
-2. Try logging in with:
-   - Username: `superadmin`
-   - Password: `admin123`
+2. Try logging in with the admin credentials you created
 
 ## 🔐 Security Checklist
 
@@ -100,7 +99,7 @@ Then call this endpoint once: `POST https://your-backend.vercel.app/api/auth/cre
 
 ## 🚀 Deployment Commands
 
-### Backend:
+### Backend
 
 ```bash
 cd backend
@@ -109,7 +108,7 @@ npm run build
 # Deploy to Vercel
 ```
 
-### Frontend:
+### Frontend
 
 ```bash
 cd frontend

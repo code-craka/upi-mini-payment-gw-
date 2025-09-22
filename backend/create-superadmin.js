@@ -48,10 +48,7 @@ const createSuperAdmin = async () => {
         });
 
         console.log("✅ Superadmin created successfully!");
-        console.log("📝 Login credentials:");
-        console.log("   Username: superadmin");
-        console.log("   Password: admin123");
-        console.log("⚠️  Please change the password after first login!");
+        console.log("⚠️  Please change the default password after first login!");
         
     } catch (error) {
         console.error("❌ Error creating superadmin:", error);

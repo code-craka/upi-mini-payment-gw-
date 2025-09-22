@@ -205,22 +205,6 @@ export default function LoginPage() {
                                 </motion.button>
                             </form>
 
-                            {/* Demo Credentials */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: 0.8 }}
-                                className="mt-8 p-4 bg-white/5 rounded-xl border border-white/10"
-                            >
-                                <h3 className="text-sm font-semibold text-white mb-2 flex items-center">
-                                    <FiShield className="w-4 h-4 mr-2 text-green-400" />
-                                    Demo Credentials
-                                </h3>
-                                <div className="text-xs text-slate-300 space-y-1">
-                                    <p><span className="text-purple-400">Username:</span> superadmin</p>
-                                    <p><span className="text-purple-400">Password:</span> admin123</p>
-                                </div>
-                            </motion.div>
 
                             {/* Footer */}
                             <motion.div
