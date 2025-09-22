@@ -6,7 +6,8 @@ Sentry.init({
   // Environment configuration
   environment: import.meta.env.MODE || "development",
 
-  // Enable logs for debugging
+  // Enable debug logs for troubleshooting
+  debug: true,
   enableLogs: true,
 
   // Performance monitoring
