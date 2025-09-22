@@ -7,10 +7,12 @@
 Your UPI Mini Gateway application has been successfully configured for the following domains:
 
 ### **Frontend Domain:**
+
 - **Primary:** `https://pay.loanpaymentsystem.xyz`
 - **WWW Variant:** `https://www.pay.loanpaymentsystem.xyz`
 
 ### **Backend API Domain:**
+
 - **Primary:** `https://api.loanpaymentsystem.xyz`
 - **WWW Variant:** `https://www.api.loanpaymentsystem.xyz`
 
@@ -60,6 +62,7 @@ const allowedOrigins = [
 ### 3. **Fallback API URLs Updated**
 
 Updated in all frontend components:
+
 - `DashboardPage.tsx`
 - `PaymentGenerator.tsx`
 - `PayPage.tsx`
@@ -175,6 +178,7 @@ vercel --prod
 ```
 
 **Configure Domain in Vercel Dashboard:**
+
 1. Go to your project settings
 2. Navigate to "Domains"
 3. Add custom domains:
@@ -193,6 +197,7 @@ vercel --prod
 ```
 
 **Configure Domain in Vercel Dashboard:**
+
 1. Go to your project settings
 2. Navigate to "Domains"
 3. Add custom domains:
@@ -233,11 +238,13 @@ npm run dev
 ### **2. Production Testing**
 
 **Frontend URLs to Test:**
+
 - `https://pay.loanpaymentsystem.xyz` - Main app
 - `https://pay.loanpaymentsystem.xyz/login` - Login page
 - `https://pay.loanpaymentsystem.xyz/pay/[order-id]` - Payment page
 
 **Backend URLs to Test:**
+
 - `https://api.loanpaymentsystem.xyz` - API status
 - `https://api.loanpaymentsystem.xyz/api/auth/login` - Login endpoint
 - `https://api.loanpaymentsystem.xyz/api/orders` - Orders endpoint
@@ -247,16 +254,19 @@ npm run dev
 ## 🔄 **Migration Strategy**
 
 ### **Phase 1: Parallel Running (Recommended)**
+
 - Keep old domains operational: `negoman.com` / `api.negoman.com`
 - Deploy new domains: `pay.loanpaymentsystem.xyz` / `api.loanpaymentsystem.xyz`
 - Both systems work simultaneously
 
 ### **Phase 2: Traffic Transition**
+
 - Update DNS to point new domains to Vercel
 - Test all functionality on new domains
 - Monitor for any issues
 
 ### **Phase 3: Legacy Cleanup**
+
 - After confirming new domains work perfectly
 - Update any external references
 - Can optionally remove old domain support
@@ -266,16 +276,19 @@ npm run dev
 ## 🛡️ **Security Considerations**
 
 ### **SSL/TLS Certificates**
+
 - Vercel automatically provides SSL certificates for custom domains
 - Certificates auto-renew every 3 months
 - All traffic is encrypted (HTTPS only)
 
 ### **CORS Security**
+
 - Updated CORS configuration prevents unauthorized access
 - Only specified domains can make API requests
 - Credentials are properly handled
 
 ### **Environment Security**
+
 - Sensitive data stored in environment variables
 - No secrets committed to code repository
 - Production and development environments separated
@@ -287,16 +300,19 @@ npm run dev
 ### **Common Issues:**
 
 **1. Domain Not Resolving**
+
 - Check DNS configuration
 - Wait 24-48 hours for propagation
 - Verify CNAME records are correct
 
 **2. CORS Errors**
+
 - Ensure frontend domain is in CORS allowlist
 - Check environment variables are set
 - Verify API URL format
 
 **3. API Connection Failed**
+
 - Confirm backend is deployed and running
 - Check API URL in frontend environment
 - Verify network connectivity
@@ -321,6 +337,7 @@ openssl s_client -connect pay.loanpaymentsystem.xyz:443
 ## 📝 **Summary**
 
 ✅ **Completed Configuration:**
+
 - Environment variables updated for both frontend and backend
 - CORS settings configured for new domains
 - Deployment configurations created for Vercel
@@ -329,6 +346,7 @@ openssl s_client -connect pay.loanpaymentsystem.xyz:443
 - Migration strategy documented
 
 🎯 **Next Steps:**
+
 1. Configure DNS records with your domain provider
 2. Deploy to Vercel with new domain configuration
 3. Test all functionality on new domains

@@ -7,7 +7,7 @@ import dashboardRouter from "./routes/dashboard.js";
 import ordersRouter from "./routes/order.js";
 import usersRouter from "./routes/users.js";
 
-config();
+config({ path: '.env.local' });
 
 const app = express();
 app.use(express.json());
