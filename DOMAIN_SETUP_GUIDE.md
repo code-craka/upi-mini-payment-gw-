@@ -22,7 +22,8 @@ Your UPI Mini Gateway application has been successfully configured for the follo
 
 ### 1. **Environment Variables Updated**
 
-#### Frontend (`/frontend/.env.local`):
+#### Frontend (`/frontend/.env.local`)
+
 ```env
 # Backend API URL (new custom domain)
 VITE_API_URL=https://api.loanpaymentsystem.xyz
@@ -31,7 +32,8 @@ VITE_API_URL=https://api.loanpaymentsystem.xyz
 VITE_FRONTEND_URL=https://pay.loanpaymentsystem.xyz
 ```
 
-#### Backend (`/backend/.env.local`):
+#### Backend (`/backend/.env.local`)
+
 ```env
 # Frontend URL (new custom domain)
 APP_BASE_URL=https://pay.loanpaymentsystem.xyz
@@ -76,7 +78,7 @@ Updated in all frontend components:
 
 ## 🚀 **Deployment Configuration**
 
-### **Frontend Vercel Configuration** (`/frontend/vercel.json`):
+### **Frontend Vercel Configuration** (`/frontend/vercel.json`)
 
 ```json
 {
@@ -100,7 +102,7 @@ Updated in all frontend components:
 }
 ```
 
-### **Backend Vercel Configuration** (`/backend/vercel.json`):
+### **Backend Vercel Configuration** (`/backend/vercel.json`)
 
 ```json
 {
@@ -130,7 +132,8 @@ Updated in all frontend components:
 
 To make these domains work, you need to configure DNS records:
 
-### **For Frontend Domain (`pay.loanpaymentsystem.xyz`)**:
+### **For Frontend Domain (`pay.loanpaymentsystem.xyz`)**
+
 ```dns
 Type: CNAME
 Name: pay
@@ -138,7 +141,8 @@ Value: cname.vercel-dns.com
 TTL: 3600
 ```
 
-### **For WWW Frontend (`www.pay.loanpaymentsystem.xyz`)**:
+### **For WWW Frontend (`www.pay.loanpaymentsystem.xyz`)**
+
 ```dns
 Type: CNAME
 Name: www.pay
@@ -146,7 +150,8 @@ Value: cname.vercel-dns.com
 TTL: 3600
 ```
 
-### **For Backend API (`api.loanpaymentsystem.xyz`)**:
+### **For Backend API (`api.loanpaymentsystem.xyz`)**
+
 ```dns
 Type: CNAME
 Name: api
@@ -154,7 +159,8 @@ Value: cname.vercel-dns.com
 TTL: 3600
 ```
 
-### **For WWW API (`www.api.loanpaymentsystem.xyz`)**:
+### **For WWW API (`www.api.loanpaymentsystem.xyz`)**
+
 ```dns
 Type: CNAME
 Name: www.api
@@ -207,12 +213,14 @@ vercel --prod
 ### **3. Environment Variables**
 
 **Set in Vercel Dashboard for Frontend:**
+
 ```env
 VITE_API_URL=https://api.loanpaymentsystem.xyz
 VITE_FRONTEND_URL=https://pay.loanpaymentsystem.xyz
 ```
 
 **Set in Vercel Dashboard for Backend:**
+
 ```env
 MONGO_URI=mongodb+srv://[your-connection-string]
 JWT_SECRET=[your-jwt-secret]
@@ -225,6 +233,7 @@ API_BASE_URL=https://api.loanpaymentsystem.xyz
 ## 🧪 **Testing the Configuration**
 
 ### **1. Local Testing**
+
 ```bash
 # Frontend
 cd frontend

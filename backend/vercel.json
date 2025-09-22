@@ -14,6 +14,8 @@
     }
   ],
   "env": {
+    "MONGO_URI": "mongodb+srv://rihanawsacc_db_user:YmYoVTUpkL62CnG1@upi-admin-gw-main.eqhavnh.mongodb.net/?retryWrites=true&w=majority&appName=upi-admin-gw-main",
+    "JWT_SECRET": "7lMSSpjjMbd0pDv74dI40UhW1rpVsUJBEWkWjPCIJzbdrvBucLzWLEsTK1rJwKetBU7447EE/xFvzafSYHUYfQ==",
     "APP_BASE_URL": "https://pay.loanpaymentsystem.xyz",
     "API_BASE_URL": "https://api.loanpaymentsystem.xyz"
   },
@@ -23,7 +25,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://pay.loanpaymentsystem.xyz"
+          "value": "https://pay.loanpaymentsystem.xyz, https://www.pay.loanpaymentsystem.xyz"
         },
         {
           "key": "Access-Control-Allow-Methods",
