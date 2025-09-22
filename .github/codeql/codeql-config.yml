@@ -1,0 +1,52 @@
+name: "UPI Gateway CodeQL Configuration"
+
+# Exclude common build artifacts and dependencies
+paths-ignore:
+  - frontend/dist
+  - backend/dist
+  - "**/node_modules"
+  - "**/*.min.js"
+  - "**/*.bundle.js"
+  - "**/coverage"
+  - "**/*.log"
+  - "**/.env*"
+
+# Include only source code paths
+paths:
+  - frontend/src
+  - backend/src
+
+# Custom queries for financial/payment applications
+queries:
+  - name: security-extended
+    uses: security-extended
+  - name: security-and-quality
+    uses: security-and-quality
+  - name: custom-payment-security
+    queries:
+      - javascript/security/insecure-randomness
+      - javascript/security/jwt-none-algorithm
+      - javascript/security/hardcoded-credentials
+      - javascript/security/cors-misconfiguration
+      - javascript/security/sql-injection
+      - javascript/security/xss
+      - javascript/security/prototype-pollution
+
+# Disable queries that generate noise for this project type
+disable-default-queries: false
+
+# Query filters for payment gateway specific issues
+query-filters:
+  - include:
+      kind: problem
+      severity: error
+  - include:
+      kind: problem
+      severity: warning
+      tags:
+        - security
+        - external/cwe/cwe-079  # XSS
+        - external/cwe/cwe-089  # SQL Injection
+        - external/cwe/cwe-798  # Hard-coded credentials
+        - external/cwe/cwe-352  # CSRF
+        - external/cwe/cwe-601  # Open redirect

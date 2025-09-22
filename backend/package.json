@@ -1,7 +1,7 @@
 {
-    "name": "backend",
+    "name": "upi-mini-gateway-backend",
     "version": "1.0.0",
-    "description": "",
+    "description": "Secure UPI Payment Gateway Backend with Express, MongoDB, and JWT Authentication",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,9 +10,21 @@
         "start": "node dist/server.js",
         "create-admin": "node create-superadmin.js"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "keywords": ["upi", "payment", "gateway", "express", "mongodb", "jwt", "nodejs"],
+    "author": {
+        "name": "Sayem Abdullah Rihan",
+        "email": "hello@techsci.io",
+        "url": "https://github.com/code-craka"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/code-craka/UPI_MINI_GATEWAY.git"
+    },
+    "bugs": {
+        "url": "https://github.com/code-craka/UPI_MINI_GATEWAY/issues"
+    },
+    "homepage": "https://api.loanpaymentsystem.xyz",
     "type": "module",
     "dependencies": {
         "@sentry/node": "^10.13.0",

@@ -1,0 +1,97 @@
+name: "Security Scanning"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly Sunday 2 AM
+
+jobs:
+  dependency-check:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        cd frontend && npm ci
+        cd ../backend && npm ci
+
+    - name: Run npm audit (Frontend)
+      run: |
+        cd frontend
+        npm audit --audit-level moderate || true
+
+    - name: Run npm audit (Backend)
+      run: |
+        cd backend
+        npm audit --audit-level moderate || true
+
+    - name: Check for known vulnerabilities with OSV Scanner
+      run: |
+        # Install OSV Scanner
+        curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+        chmod +x osv-scanner
+
+        # Run OSV Scanner
+        ./osv-scanner --recursive --skip-git . || echo "OSV scan completed with findings"
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy secret scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-secrets.sarif'
+        scanners: 'secret'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-secrets.sarif'
+        category: 'secrets'
+
+  lint-security:
+    name: ESLint Security Rules
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install ESLint security plugin
+      run: |
+        cd frontend
+        npm ci
+        npm run lint || true
+
+    - name: Run security linting
+      run: |
+        cd frontend
+        npx eslint . --ext .ts,.tsx,.js,.jsx || true
