@@ -13,7 +13,7 @@ interface Stats {
 export default function DashboardPage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
-    const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
+    const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
     const token = localStorage.getItem("token");
 
     useEffect(() => {

@@ -19,7 +19,7 @@ export default function UserManagement() {
     const [role, setRole] = useState<"user" | "admin">("user");
     const [creating, setCreating] = useState(false);
 
-    const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
+    const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
     const token = localStorage.getItem("token");
 
     const fetchUsers = useCallback(async () => {

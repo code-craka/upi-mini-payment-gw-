@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "upi-gateway-backend",
   "builds": [
     {
       "src": "src/server.ts",
@@ -11,5 +12,33 @@
       "src": "/(.*)",
       "dest": "src/server.ts"
     }
-  ]
+  ],
+  "env": {
+    "APP_BASE_URL": "https://pay.loanpaymentsystem.xyz",
+    "API_BASE_URL": "https://api.loanpaymentsystem.xyz"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://pay.loanpaymentsystem.xyz"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "regions": ["bom1"]
 }

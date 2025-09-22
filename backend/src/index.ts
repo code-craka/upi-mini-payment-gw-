@@ -15,10 +15,15 @@ app.use(express.json());
 // ✅ Allow frontend from multiple domains
 const allowedOrigins = [
     process.env.APP_BASE_URL,
+    // New domains
+    "https://pay.loanpaymentsystem.xyz",
+    "https://www.pay.loanpaymentsystem.xyz",
+    // Legacy domains (keep for transition)
     "https://negoman.com",
     "https://www.negoman.com",
-    "http://localhost:5173", // for local development
-    "http://localhost:3000"  // for local development
+    // Local development
+    "http://localhost:5173",
+    "http://localhost:3000"
 ].filter(Boolean);
 
 app.use(

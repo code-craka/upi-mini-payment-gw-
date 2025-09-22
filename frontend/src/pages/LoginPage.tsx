@@ -10,7 +10,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
+    const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

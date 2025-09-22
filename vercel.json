@@ -1,0 +1,65 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "name": "upi-frontend",
+      "source": "frontend",
+      "framework": "vite",
+      "outputDirectory": "dist",
+      "buildCommand": "npm run build",
+      "installCommand": "npm install",
+      "domains": [
+        "pay.loanpaymentsystem.xyz",
+        "www.pay.loanpaymentsystem.xyz"
+      ],
+      "env": {
+        "VITE_API_URL": "https://api.loanpaymentsystem.xyz"
+      }
+    },
+    {
+      "name": "upi-backend",
+      "source": "backend",
+      "runtime": "nodejs18.x",
+      "buildCommand": "npm run build",
+      "installCommand": "npm install",
+      "domains": [
+        "api.loanpaymentsystem.xyz",
+        "www.api.loanpaymentsystem.xyz"
+      ],
+      "env": {
+        "APP_BASE_URL": "https://pay.loanpaymentsystem.xyz",
+        "API_BASE_URL": "https://api.loanpaymentsystem.xyz"
+      }
+    }
+  ],
+  "functions": {
+    "backend/server.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://api.loanpaymentsystem.xyz/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://pay.loanpaymentsystem.xyz"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}

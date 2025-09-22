@@ -27,7 +27,7 @@ export default function PayPage() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(10 * 60); // display-only timer
 
-     const api = import.meta.env.VITE_API_URL || "https://api.negoman.com";
+     const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
     // Fetch order details
     useEffect(() => {
         const fetchOrder = async () => {

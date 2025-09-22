@@ -238,8 +238,8 @@
 **Contact Information:**
 
 - **Project Repository:** https://github.com/code-craka/upi-mini-payment-gw-
-- **Live Demo:** https://www.negoman.com
-- **API Endpoint:** https://api.negoman.com
+- **Live Demo:** https://pay.loanpaymentsystem.xyz
+- **API Endpoint:** https://api.loanpaymentsystem.xyz
 
 ---
 
