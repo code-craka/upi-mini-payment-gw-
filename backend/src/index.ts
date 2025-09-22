@@ -1,3 +1,7 @@
+// IMPORTANT: Sentry must be imported first!
+import "../instrument.js";
+import * as Sentry from "@sentry/node";
+
 import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
@@ -67,6 +71,29 @@ app.use("/api/auth", authRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/users", usersRouter);
+
+// 🐛 Sentry debug endpoint for testing
+app.get("/debug-sentry", function mainHandler(req, res) {
+  // Send a log before throwing the error
+  Sentry.logger.info('User triggered test error', {
+    action: 'test_error_endpoint',
+    user_ip: req.ip,
+  });
+  throw new Error("My first Sentry error!");
+});
+
+// ❌ Sentry error handler - must be after all routes but before other error middleware
+Sentry.setupExpressErrorHandler(app);
+
+// 🔄 Optional fallthrough error handler
+app.use(function onError(err: any, req: any, res: any, next: any) {
+  // The error id is attached to `res.sentry` to be returned
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    id: res.sentry || "unknown"
+  });
+});
 
 // ✅ Connect to DB and listen on all network interfaces
 mongoose

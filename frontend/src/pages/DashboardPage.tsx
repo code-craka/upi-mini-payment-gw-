@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { FiUsers, FiShoppingBag, FiTrendingUp, FiDollarSign } from "react-icons/fi";
+import { FiUsers, FiShoppingBag, FiTrendingUp, FiDollarSign, FiAlertTriangle } from "react-icons/fi";
 import { motion } from "framer-motion";
+import * as Sentry from "@sentry/react";
 import UserManagement from "../components/admin/UserManagement";
 
 interface Stats {
@@ -15,6 +16,35 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
     const token = localStorage.getItem("token");
+
+    // Sentry testing functions
+    const testSentryError = () => {
+        Sentry.startSpan({
+            op: "ui.click",
+            name: "Test Sentry Error Button",
+        }, () => {
+            Sentry.logger.info("User clicked test error button");
+            throw new Error("Test error from frontend!");
+        });
+    };
+
+    const testSentryLog = () => {
+        Sentry.logger.warn("This is a test warning from the frontend", {
+            user: localStorage.getItem("username") || "unknown",
+            timestamp: new Date().toISOString(),
+            action: "test_sentry_log"
+        });
+        alert("Test log sent to Sentry! Check your dashboard.");
+    };
+
+    const testBackendError = async () => {
+        try {
+            await axios.get(`${api}/debug-sentry`);
+        } catch (error) {
+            console.log("Backend error test triggered successfully:", error);
+            alert("Backend error test triggered! Check Sentry dashboard.");
+        }
+    };
 
     useEffect(() => {
         (async () => {
@@ -77,6 +107,44 @@ export default function DashboardPage() {
                     </h1>
                     <p className="text-slate-300 text-lg">Monitor your UPI payment gateway performance</p>
                 </motion.div>
+
+                {/* Sentry Test Section - Only visible in development */}
+                {import.meta.env.DEV && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
+                    >
+                        <div className="flex items-center gap-2 mb-3">
+                            <FiAlertTriangle className="text-red-400" />
+                            <h3 className="text-red-400 font-semibold">Sentry Testing (Development Only)</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={testSentryError}
+                                className="px-3 py-1 bg-red-600/20 text-red-300 rounded border border-red-500/30 hover:bg-red-600/30 transition-colors text-sm"
+                            >
+                                Test Frontend Error
+                            </button>
+                            <button
+                                onClick={testSentryLog}
+                                className="px-3 py-1 bg-yellow-600/20 text-yellow-300 rounded border border-yellow-500/30 hover:bg-yellow-600/30 transition-colors text-sm"
+                            >
+                                Test Frontend Log
+                            </button>
+                            <button
+                                onClick={testBackendError}
+                                className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded border border-blue-500/30 hover:bg-blue-600/30 transition-colors text-sm"
+                            >
+                                Test Backend Error
+                            </button>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2">
+                            These buttons test Sentry error capturing. Check your Sentry dashboard after clicking.
+                        </p>
+                    </motion.div>
+                )}
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

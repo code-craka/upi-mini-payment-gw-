@@ -12,6 +12,7 @@ The "invalid credentials" error is occurring because of missing environment vari
 2. Create a cluster (if you don't have one)
 3. Create a database user with read/write permissions
 4. Get your connection string (it should look like this):
+
    ```
    mongodb+srv://username:password@cluster.mongodb.net/upi_gateway?retryWrites=true&w=majority
    ```
@@ -45,6 +46,7 @@ VITE_API_URL=https://your-backend-app.vercel.app
 After setting up environment variables, you need to create the initial superadmin user.
 
 #### Option A: Run locally first (Recommended)
+
 ```bash
 cd backend
 npm install
@@ -99,6 +101,7 @@ Then call this endpoint once: `POST https://your-backend.vercel.app/api/auth/cre
 ## 🚀 Deployment Commands
 
 ### Backend:
+
 ```bash
 cd backend
 npm install
@@ -107,6 +110,7 @@ npm run build
 ```
 
 ### Frontend:
+
 ```bash
 cd frontend
 npm install  
@@ -138,6 +142,7 @@ npm run build
 Create `.env` files for local testing:
 
 **Backend `.env`:**
+
 ```bash
 MONGO_URI=your-mongodb-uri
 JWT_SECRET=your-jwt-secret
@@ -145,11 +150,13 @@ APP_BASE_URL=http://localhost:5173
 ```
 
 **Frontend `.env`:**
+
 ```bash
 VITE_API_URL=http://localhost:3000
 ```
 
 Run locally:
+
 ```bash
 # Backend (Terminal 1)
 cd backend && npm run dev
