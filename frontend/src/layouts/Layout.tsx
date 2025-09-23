@@ -1,18 +1,74 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiHome, FiUser, FiShield, FiLogOut, FiCreditCard } from "react-icons/fi";
+import { FiHome, FiUser, FiLogOut, FiCreditCard, FiUsers, FiBarChart } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import type { User, UserRole } from "../types/types";
 
 export default function Layout() {
     const navigate = useNavigate();
-    const username = localStorage.getItem("username");
-    const role = localStorage.getItem("role");
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Get user data from localStorage
+    useEffect(() => {
+        try {
+            const userStr = localStorage.getItem("user");
+            const token = localStorage.getItem("token");
+
+            if (userStr && token) {
+                setUser(JSON.parse(userStr));
+            } else {
+                // Fallback to legacy storage
+                const username = localStorage.getItem("username");
+                const role = localStorage.getItem("role") as UserRole;
+                if (username && role) {
+                    setUser({
+                        _id: "",
+                        username,
+                        role,
+                        isActive: true,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Failed to parse user from localStorage", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("username");
+        localStorage.removeItem("user");
+        setUser(null);
         navigate("/login");
     };
+
+    const getRoleDisplayName = (role: UserRole): string => {
+        switch (role) {
+            case "superadmin": return "Super Admin";
+            case "merchant": return "Merchant";
+            case "user": return "User";
+            default: return "User";
+        }
+    };
+
+    const canAccessDashboard = (role: UserRole): boolean => {
+        return ["superadmin", "merchant"].includes(role);
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+                <div className="relative">
+                    <div className="w-8 h-8 border-4 border-purple-400/30 rounded-full animate-spin border-t-purple-400"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -49,31 +105,54 @@ export default function Layout() {
 
                             {/* Navigation */}
                             <nav className="flex items-center space-x-6">
-                                {username ? (
+                                {user ? (
                                     <>
                                         {/* Welcome Message */}
                                         <div className="flex items-center space-x-3">
                                             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                                                 <span className="text-white font-bold text-sm">
-                                                    {username.charAt(0).toUpperCase()}
+                                                    {user.username.charAt(0).toUpperCase()}
                                                 </span>
                                             </div>
                                             <div className="hidden md:block">
-                                                <p className="text-white font-medium">Welcome, {username}</p>
-                                                <p className="text-xs text-slate-400 capitalize">{role} User</p>
+                                                <p className="text-white font-medium">Welcome, {user.username}</p>
+                                                <p className="text-xs text-slate-400">{getRoleDisplayName(user.role)}</p>
+                                                {user.parent && (
+                                                    <p className="text-xs text-purple-400">↳ {user.parent.username}</p>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Admin Dashboard Link */}
-                                        {role === "admin" && (
+                                        {/* Dashboard Link - v2.0 Role-based */}
+                                        {canAccessDashboard(user.role) && (
                                             <Link
                                                 to="/admin/dashboard"
                                                 className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 text-white hover:text-purple-300 transition-all duration-300"
                                             >
-                                                <FiShield className="w-4 h-4" />
+                                                <FiBarChart className="w-4 h-4" />
                                                 <span className="hidden md:inline">Dashboard</span>
                                             </Link>
                                         )}
+
+                                        {/* User Management - Superadmin & Merchant only */}
+                                        {(user.role === "superadmin" || user.role === "merchant") && (
+                                            <Link
+                                                to="/admin/users"
+                                                className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 text-white hover:text-green-300 transition-all duration-300"
+                                            >
+                                                <FiUsers className="w-4 h-4" />
+                                                <span className="hidden md:inline">Users</span>
+                                            </Link>
+                                        )}
+
+                                        {/* Order Management - All authenticated users */}
+                                        <Link
+                                            to="/admin/orders"
+                                            className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 text-white hover:text-orange-300 transition-all duration-300"
+                                        >
+                                            <FiCreditCard className="w-4 h-4" />
+                                            <span className="hidden md:inline">Orders</span>
+                                        </Link>
 
                                         {/* Home Link */}
                                         <Link

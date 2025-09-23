@@ -1,35 +1,40 @@
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FiUsers, FiUserPlus, FiTrash2, FiUser, FiLock, FiShield, FiEdit3 } from "react-icons/fi";
-
-interface IUser {
-    _id: string;
-    username: string;
-    role: "admin" | "user";
-    createdAt?: string;
-    updatedAt?: string;
-}
+import { FiUsers, FiUserPlus, FiTrash2, FiUser, FiLock, FiShield, FiEdit3, FiUserCheck } from "react-icons/fi";
+import type { User, UserRole, UserCreateRequest } from "../../types/types";
 
 export default function UserManagement() {
-    const [users, setUsers] = useState<IUser[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState<"user" | "admin">("user");
+    const [role, setRole] = useState<UserRole>("user");
     const [creating, setCreating] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
     const token = localStorage.getItem("token");
 
+    // Get current user from localStorage
+    useEffect(() => {
+        try {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                setCurrentUser(JSON.parse(userStr));
+            }
+        } catch (error) {
+            console.error("Failed to parse user from localStorage", error);
+        }
+    }, []);
+
     const fetchUsers = useCallback(async () => {
         try {
-            const res = await axios.get<IUser[]>(`${api}/api/users`, {
+            const res = await axios.get(`${api}/api/users`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setUsers(res.data);
+            setUsers(res.data.users || res.data);
         } catch (err) {
-            console.error(err);
             console.error("Failed to fetch users:", err);
         } finally {
             setLoading(false);
@@ -44,18 +49,24 @@ export default function UserManagement() {
         e.preventDefault();
         setCreating(true);
         try {
+            const userData: UserCreateRequest = {
+                username,
+                password,
+                role
+            };
+
             await axios.post(
                 `${api}/api/users`,
-                { username, password, role },
+                userData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
             console.log("User created successfully");
             setUsername("");
             setPassword("");
             setRole("user");
             fetchUsers();
         } catch (err) {
-            console.error(err);
             console.error("Failed to create user:", err);
         } finally {
             setCreating(false);
@@ -77,12 +88,31 @@ export default function UserManagement() {
         }
     };
 
-    const getRoleIcon = (role: string) => {
-        return role === "admin" ? FiShield : FiUser;
+    const getRoleIcon = (role: UserRole) => {
+        switch (role) {
+            case "superadmin": return FiShield;
+            case "merchant": return FiUserCheck;
+            case "user": return FiUser;
+            default: return FiUser;
+        }
     };
 
-    const getRoleColor = (role: string) => {
-        return role === "admin" ? "from-orange-500 to-red-500" : "from-blue-500 to-purple-500";
+    const getRoleColor = (role: UserRole) => {
+        switch (role) {
+            case "superadmin": return "from-orange-500 to-red-500";
+            case "merchant": return "from-purple-500 to-pink-500";
+            case "user": return "from-blue-500 to-purple-500";
+            default: return "from-blue-500 to-purple-500";
+        }
+    };
+
+    const getAvailableRoles = (): UserRole[] => {
+        if (currentUser?.role === "superadmin") {
+            return ["user", "merchant", "superadmin"];
+        } else if (currentUser?.role === "merchant") {
+            return ["user"];
+        }
+        return ["user"];
     };
 
     if (loading) {
@@ -177,12 +207,15 @@ export default function UserManagement() {
                                     </div>
                                     <select
                                         value={role}
-                                        onChange={(e) => setRole(e.target.value as "user" | "admin")}
+                                        onChange={(e) => setRole(e.target.value as UserRole)}
                                         className="w-full pl-10 pr-3 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:bg-white/10 focus:border-purple-400 focus:outline-none transition-all duration-300 appearance-none"
                                         aria-label="User role selection"
                                     >
-                                        <option value="user" className="bg-slate-800">User</option>
-                                        <option value="admin" className="bg-slate-800">Admin</option>
+                                        {getAvailableRoles().map((roleOption) => (
+                                            <option key={roleOption} value={roleOption} className="bg-slate-800 capitalize">
+                                                {roleOption === "superadmin" ? "Superadmin" : roleOption.charAt(0).toUpperCase() + roleOption.slice(1)}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -270,14 +303,19 @@ export default function UserManagement() {
                                                         </div>
                                                         <div>
                                                             <div className="text-white font-medium">{user.username}</div>
-                                                            <div className="text-slate-400 text-sm">ID: {user._id.slice(-6)}</div>
+                                                            <div className="text-slate-400 text-sm">
+                                                                ID: {user._id.slice(-6)}
+                                                                {user.parent && (
+                                                                    <span className="ml-2 text-purple-400">← {user.parent.username}</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getRoleColor(user.role)} text-white`}>
                                                         <RoleIcon className="w-3 h-3 mr-1" />
-                                                        {user.role}
+                                                        {user.role === "superadmin" ? "Superadmin" : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-slate-300 text-sm">

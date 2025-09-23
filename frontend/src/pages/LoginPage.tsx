@@ -22,13 +22,19 @@ export default function LoginPage() {
                 username,
                 password,
             });
-            const { token, role } = res.data;
+            const { token, user } = res.data;
+            const { role, username: userUsername } = user;
+
             localStorage.setItem("token", token);
             localStorage.setItem("role", role);
-            localStorage.setItem("username", res.data.username);
+            localStorage.setItem("username", userUsername);
+            localStorage.setItem("user", JSON.stringify(user));
 
-            if (role === "admin") {
+            // Handle both legacy "admin" and new "superadmin" roles
+            if (role === "admin" || role === "superadmin") {
                 navigate("/admin/dashboard");
+            } else if (role === "merchant") {
+                navigate("/admin/dashboard"); // Merchants also get admin dashboard
             } else {
                 navigate("/");
             }
