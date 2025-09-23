@@ -3,7 +3,8 @@
 **Version**: 2.0.0
 **Author**: Sayem Abdullah Rihan (@code-craka)
 **Last Updated**: September 23, 2024
-**Base URL**: `https://api.loanpaymentsystem.xyz`
+**Production URL**: `https://api.loanpaymentsystem.xyz`
+**Development URL**: `https://api.dev.loanpaymentsystem.xyz`
 
 ---
 
@@ -504,18 +505,31 @@ Test role-based access control filters.
 
 ## 🧪 Testing
 
+### **Environment URLs**
+- **Production**: `https://api.loanpaymentsystem.xyz`
+- **Development**: `https://api.dev.loanpaymentsystem.xyz`
+
 ### **Authentication Testing**
 ```bash
-# Login
+# Production Login
 curl -X POST https://api.loanpaymentsystem.xyz/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"your_password"}'
+
+# Development Login
+curl -X POST https://api.dev.loanpaymentsystem.xyz/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"your_password"}'
 ```
 
 ### **Protected Endpoint Testing**
 ```bash
-# Get users (with token)
+# Production - Get users (with token)
 curl -X GET https://api.loanpaymentsystem.xyz/api/users \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Development - Get users (with token)
+curl -X GET https://api.dev.loanpaymentsystem.xyz/api/users \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
