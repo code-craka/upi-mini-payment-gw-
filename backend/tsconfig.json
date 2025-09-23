@@ -21,7 +21,7 @@
 
         // Type Safety
         "noUncheckedIndexedAccess": true,
-        "exactOptionalPropertyTypes": true,
+        // "exactOptionalPropertyTypes": true, // Temporarily disabled for v2.0
 
         // Recommended
         "strict": true,

@@ -10,11 +10,16 @@ import authRouter from "./routes/auth.js";
 import dashboardRouter from "./routes/dashboard.js";
 import ordersRouter from "./routes/order.js";
 import usersRouter from "./routes/users.js";
+import { globalErrorHandler, notFoundHandler } from './utils/errorHandler.js';
+import { requestLogger } from './utils/logger.js';
 
 config({ path: '.env.local' });
 
 const app = express();
 app.use(express.json());
+
+// ✅ Request logging middleware
+app.use(requestLogger);
 
 // ✅ Allow frontend from multiple domains
 const allowedOrigins = [
@@ -85,15 +90,11 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 // ❌ Sentry error handler - must be after all routes but before other error middleware
 Sentry.setupExpressErrorHandler(app);
 
-// 🔄 Optional fallthrough error handler
-app.use(function onError(err: any, req: any, res: any, next: any) {
-  // The error id is attached to `res.sentry` to be returned
-  console.error("Unhandled error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    id: res.sentry || "unknown"
-  });
-});
+// ✅ Handle 404 errors
+app.use(notFoundHandler);
+
+// ✅ Global error handler
+app.use(globalErrorHandler);
 
 // ✅ Connect to DB and listen on all network interfaces
 mongoose
