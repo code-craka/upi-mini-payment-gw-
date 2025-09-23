@@ -3,14 +3,14 @@
   "name": "upi-gateway-backend",
   "builds": [
     {
-      "src": "src/server.ts",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/server.ts"
+      "dest": "server.js"
     }
   ],
   "env": {
@@ -25,7 +25,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://pay.loanpaymentsystem.xyz, https://www.pay.loanpaymentsystem.xyz"
+          "value": "https://pay.loanpaymentsystem.xyz, https://www.pay.loanpaymentsystem.xyz, https://dev.loanpaymentsystem.xyz, https://www.dev.loanpaymentsystem.xyz"
         },
         {
           "key": "Access-Control-Allow-Methods",
