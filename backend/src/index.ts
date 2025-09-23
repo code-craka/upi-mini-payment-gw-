@@ -24,9 +24,12 @@ app.use(requestLogger);
 // ✅ Allow frontend from multiple domains
 const allowedOrigins = [
     process.env.APP_BASE_URL,
-    // New domains
+    // Production domains
     "https://pay.loanpaymentsystem.xyz",
     "https://www.pay.loanpaymentsystem.xyz",
+    // Development domains
+    "https://dev.loanpaymentsystem.xyz",
+    "https://www.dev.loanpaymentsystem.xyz",
     // Legacy domains (keep for transition)
     "https://negoman.com",
     "https://www.negoman.com",
