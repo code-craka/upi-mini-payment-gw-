@@ -1,5 +1,4 @@
-// IMPORTANT: Sentry must be imported first!
-import "../instrument.js";
+// Sentry is now loaded via --import flag
 import * as Sentry from "@sentry/node";
 
 import cors from "cors";
@@ -35,6 +34,7 @@ const allowedOrigins = [
     "https://www.negoman.com",
     // Local development
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://localhost:3000"
 ].filter(Boolean);
 

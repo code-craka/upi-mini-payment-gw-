@@ -72,70 +72,64 @@ export const protect = async (
 };
 
 /**
+ * Common access denied response
+ */
+const sendAccessDeniedResponse = (
+    res: Response, 
+    message: string, 
+    required: string, 
+    current: string
+) => {
+    res.status(403).json({
+        message,
+        code: "INSUFFICIENT_PRIVILEGES",
+        required,
+        current
+    });
+};
+
+/**
+ * Role-based middleware factory - handles all role checks
+ */
+export const roleOrAbove = (requiredRole: UserRole, exactMatch = false) => {
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
+        const currentRole = req.user?.role || "none";
+        
+        let hasPermission = false;
+        if (exactMatch) {
+            hasPermission = currentRole === requiredRole;
+        } else {
+            hasPermission = Boolean(req.user && isRoleAtOrAbove(req.user.role, requiredRole));
+        }
+
+        if (hasPermission) {
+            next();
+        } else {
+            const messagePrefix = exactMatch ? "exact" : "or above";
+            sendAccessDeniedResponse(
+                res,
+                `Access denied. ${requiredRole} privileges ${messagePrefix} required.`,
+                requiredRole,
+                currentRole
+            );
+        }
+    };
+};
+
+/**
  * Superadmin-only middleware
  */
-export const superadmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user?.role === "superadmin") {
-        next();
-    } else {
-        res.status(403).json({
-            message: "Access denied. Superadmin privileges required.",
-            code: "INSUFFICIENT_PRIVILEGES",
-            required: "superadmin",
-            current: req.user?.role || "none"
-        });
-    }
-};
+export const superadmin = roleOrAbove("superadmin", true);
 
 /**
  * Merchant or above middleware
  */
-export const merchant = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user && isRoleAtOrAbove(req.user.role, "merchant")) {
-        next();
-    } else {
-        res.status(403).json({
-            message: "Access denied. Merchant privileges or above required.",
-            code: "INSUFFICIENT_PRIVILEGES",
-            required: "merchant",
-            current: req.user?.role || "none"
-        });
-    }
-};
+export const merchant = roleOrAbove("merchant");
 
 /**
  * Merchant-only middleware (excludes superadmin)
  */
-export const merchantOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user?.role === "merchant") {
-        next();
-    } else {
-        res.status(403).json({
-            message: "Access denied. Merchant-only access.",
-            code: "INSUFFICIENT_PRIVILEGES",
-            required: "merchant",
-            current: req.user?.role || "none"
-        });
-    }
-};
-
-/**
- * Role-based middleware factory
- */
-export const roleOrAbove = (requiredRole: UserRole) => {
-    return (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (req.user && isRoleAtOrAbove(req.user.role, requiredRole)) {
-            next();
-        } else {
-            res.status(403).json({
-                message: `Access denied. ${requiredRole} privileges or above required.`,
-                code: "INSUFFICIENT_PRIVILEGES",
-                required: requiredRole,
-                current: req.user?.role || "none"
-            });
-        }
-    };
-};
+export const merchantOnly = roleOrAbove("merchant", true);
 
 /**
  * Utility function to check if user can manage another user
@@ -147,7 +141,8 @@ export const canManageUser = async (managerId: string, targetUserId: string): Pr
             User.findById(targetUserId)
         ]);
 
-        if (!manager || !targetUser || !manager.isActive || !targetUser.isActive) {
+        const areUsersValid = manager && targetUser && manager.isActive && targetUser.isActive;
+        if (!areUsersValid) {
             return false;
         }
 

@@ -4,12 +4,15 @@ import { config } from "dotenv";
 
 config({ path: '.env.local' });
 
-// Define User schema inline
+// Define User schema inline (v2.0 RBAC)
 const UserSchema = new mongoose.Schema(
     {
         username: { type: String, required: true, unique: true, index: true },
         password: { type: String, required: true },
-        role: { type: String, enum: ["admin", "user"], default: "user" },
+        role: { type: String, enum: ["superadmin", "merchant", "user"], default: "user" },
+        parent: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        isActive: { type: Boolean, default: true },
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }
     },
     { timestamps: true }
 );
@@ -45,7 +48,10 @@ const createSuperAdmin = async (): Promise<void> => {
         await User.create({
             username: "superadmin",
             password: "admin123", // Will be hashed by the pre-save hook
-            role: "admin"
+            role: "superadmin",
+            parent: null, // Superadmin has no parent
+            isActive: true,
+            createdBy: null // Self-created
         });
 
         console.log("✅ Superadmin created successfully!");
