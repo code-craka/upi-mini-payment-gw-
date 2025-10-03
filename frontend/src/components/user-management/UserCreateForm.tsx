@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiUser, FiLock, FiUserPlus, FiX, FiCheck, FiAlertCircle } from "react-icons/fi";
-import { UserFormData, UserRole, User } from "../../types/types";
+import type { UserFormData, UserRole, User } from "../../types/types";
 import { RoleBadge, PermissionGate } from "../rbac";
 
 interface UserCreateFormProps {
@@ -150,7 +150,8 @@ export default function UserCreateForm({
         const errorData = await response.json();
         setErrors({ submit: errorData.error || "Failed to create user" });
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("Create user error:", err);
       setErrors({ submit: "Network error. Please try again." });
     } finally {
       setLoading(false);
@@ -188,6 +189,7 @@ export default function UserCreateForm({
           </div>
           <button
             onClick={onClose}
+            title="Close form"
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
             <FiX className="w-5 h-5 text-slate-400" />
@@ -313,6 +315,7 @@ export default function UserCreateForm({
                 <select
                   value={formData.parentId}
                   onChange={(e) => handleInputChange("parentId", e.target.value)}
+                  title="Select merchant to assign user to"
                   className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white focus:bg-white/10 focus:outline-none transition-all duration-300 ${
                     errors.parentId ? "border-red-500/50" : "border-white/20 focus:border-purple-400"
                   }`}

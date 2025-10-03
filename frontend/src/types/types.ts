@@ -209,7 +209,7 @@ export interface OrderCardProps {
 }
 
 // API Response interfaces
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   message?: string;
   data?: T;
   error?: string;
@@ -221,7 +221,7 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   error: string;
   code: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
   requestId?: string;
 }
@@ -250,7 +250,7 @@ export interface OrderFormData {
 // Utility types
 export type LoadingState = "idle" | "loading" | "success" | "error";
 
-export interface AsyncState<T = any> {
+export interface AsyncState<T = unknown> {
   data: T | null;
   loading: boolean;
   error: string | null;
@@ -261,7 +261,7 @@ export interface AsyncState<T = any> {
 export interface NavigationItem {
   label: string;
   path: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   requiredRoles?: UserRole[];
   exact?: boolean;
 }

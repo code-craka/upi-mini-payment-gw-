@@ -1,5 +1,4 @@
-import React from "react";
-import { User } from "../../types/types";
+import type { User } from "../../types/types";
 import RoleBadge from "./RoleBadge";
 import { FiArrowDown, FiUsers, FiUser } from "react-icons/fi";
 

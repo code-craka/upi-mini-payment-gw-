@@ -39,7 +39,14 @@ export default function SuperadminDashboard({ className = "" }: SuperadminDashbo
     }
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, gradient, trend }: any) => (
+    const StatCard = ({ icon: Icon, title, value, subtitle, gradient, trend }: {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    value: string | number;
+    subtitle: string;
+    gradient: string;
+    trend?: number;
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}

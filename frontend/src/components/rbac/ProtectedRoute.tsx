@@ -1,6 +1,5 @@
-import React from "react";
 import { Navigate } from "react-router-dom";
-import { ProtectedRouteProps, UserRole } from "../../types/types";
+import type { ProtectedRouteProps } from "../../types/types";
 import PermissionGate from "./PermissionGate";
 
 export default function ProtectedRoute({

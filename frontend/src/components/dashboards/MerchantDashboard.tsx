@@ -8,6 +8,18 @@ interface MerchantDashboardProps {
   className?: string;
 }
 
+interface StatCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value: string | number;
+  subtitle: string;
+  gradient: string;
+  change?: {
+    value: number;
+    trend: 'up' | 'down';
+  };
+}
+
 export default function MerchantDashboard({ className = "" }: MerchantDashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -41,7 +53,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
     }
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, gradient, change }: any) => (
+  const StatCard = ({ icon: Icon, title, value, subtitle, gradient, change }: StatCardProps) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -58,9 +70,9 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
         </div>
         {change && (
           <div className="text-right">
-            <div className={`flex items-center space-x-1 ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`flex items-center space-x-1 ${change.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
               <FiTrendingUp className="w-4 h-4" />
-              <span className="text-sm font-medium">{change > 0 ? '+' : ''}{change}%</span>
+              <span className="text-sm font-medium">{change.trend === 'up' ? '+' : ''}{change.value}%</span>
             </div>
             <p className="text-slate-400 text-xs">vs last month</p>
           </div>
@@ -112,7 +124,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
           value={stats?.totalUsers?.toLocaleString() || '0'}
           subtitle="Under your merchant account"
           gradient="bg-gradient-to-r from-blue-500 to-indigo-500"
-          change={5}
+          change={{ value: 5, trend: 'up' }}
         />
         <StatCard
           icon={FiShoppingBag}
@@ -120,7 +132,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
           value={stats?.totalOrders?.toLocaleString() || '0'}
           subtitle={`${stats?.todayOrders || 0} today, ${stats?.pendingOrders || 0} pending`}
           gradient="bg-gradient-to-r from-green-500 to-emerald-500"
-          change={12}
+          change={{ value: 12, trend: 'up' }}
         />
         <StatCard
           icon={FiDollarSign}
@@ -128,7 +140,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
           value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
           subtitle="Total from your users"
           gradient="bg-gradient-to-r from-purple-500 to-pink-500"
-          change={8}
+          change={{ value: 8, trend: 'up' }}
         />
       </div>
 
@@ -191,7 +203,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
           </h2>
           <div className="space-y-4">
             {topUsers.length > 0 ? (
-              topUsers.slice(0, 5).map((user, index) => (
+              topUsers.slice(0, 5).map((user) => (
                 <div key={user._id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">

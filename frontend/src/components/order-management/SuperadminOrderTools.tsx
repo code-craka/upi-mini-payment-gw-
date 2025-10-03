@@ -50,7 +50,8 @@ export default function SuperadminOrderTools({
         const errorData = await response.json();
         setErrors({ submit: errorData.error || "Failed to invalidate order" });
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to invalidate order:", err);
       setErrors({ submit: "Network error. Please try again." });
     } finally {
       setIsInvalidating(false);

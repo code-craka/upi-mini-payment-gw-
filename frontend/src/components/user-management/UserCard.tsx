@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiUser, FiEdit2, FiTrash2, FiPower, FiEye, FiCalendar, FiShoppingBag } from "react-icons/fi";
-import { UserCardProps, UserRole } from "../../types/types";
+import type { UserCardProps, UserRole, User } from "../../types/types";
 import { RoleBadge, PermissionGate } from "../rbac";
 
-function canManageUser(currentUserRole: UserRole, targetUser: any, currentUserId: string): boolean {
+function canManageUser(currentUserRole: UserRole, targetUser: User, currentUserId: string): boolean {
   // Superadmin can manage everyone except themselves (with confirmation)
   if (currentUserRole === "superadmin") {
     return true;

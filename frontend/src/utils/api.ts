@@ -99,7 +99,7 @@ export const apiClient = {
     );
   },
 
-  post: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  post: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
     return Sentry.startSpan(
       {
         op: 'http.client',
@@ -112,7 +112,7 @@ export const apiClient = {
     );
   },
 
-  put: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  put: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
     return Sentry.startSpan(
       {
         op: 'http.client',
@@ -143,7 +143,7 @@ export const apiClient = {
 declare module 'axios' {
   interface AxiosRequestConfig {
     metadata?: {
-      sentrySpan?: any;
+      sentrySpan?: ReturnType<typeof Sentry.startInactiveSpan>;
     };
   }
 }

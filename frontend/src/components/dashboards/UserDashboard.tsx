@@ -39,7 +39,13 @@ export default function UserDashboard({ className = "" }: UserDashboardProps) {
     }
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, gradient }: any) => (
+    const StatCard = ({ icon: Icon, title, value, subtitle, gradient }: {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    value: string | number;
+    subtitle: string;
+    gradient: string;
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}

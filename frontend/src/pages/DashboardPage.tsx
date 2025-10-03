@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { UserRole } from "../types/types";
+import { useEffect, useState } from "react";
+import type { UserRole, User } from "../types/types";
 import { SuperadminDashboard, MerchantDashboard, UserDashboard } from "../components/dashboards";
 import { ProtectedRoute } from "../components/rbac";
 
@@ -20,7 +20,7 @@ function getUserFromStorage() {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

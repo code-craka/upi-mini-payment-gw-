@@ -1,5 +1,4 @@
-import React from "react";
-import { PermissionGateProps, UserRole } from "../../types/types";
+import type { PermissionGateProps, UserRole } from "../../types/types";
 
 // Role hierarchy levels for permission checking
 const roleHierarchy: Record<UserRole, number> = {

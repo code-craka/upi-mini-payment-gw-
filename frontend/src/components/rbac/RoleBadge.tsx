@@ -1,4 +1,4 @@
-import { RoleBadgeProps } from "../../types/types";
+import type { RoleBadgeProps } from "../../types/types";
 
 const roleConfig = {
   superadmin: {
