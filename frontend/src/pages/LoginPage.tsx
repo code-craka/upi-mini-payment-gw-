@@ -1,28 +1,33 @@
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiUser, FiLock, FiArrowRight, FiShield, FiEye, FiEyeOff } from "react-icons/fi";
+import { apiClient } from "../utils/api";
+import type { LoginResponse } from "../types/types";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        console.log("API URL:", api);
-        console.log("Full login URL:", `${api}/api/auth/login`);
+        setError("");
+        
+        console.log("Attempting login with username:", username);
+        console.log("API URL:", import.meta.env.VITE_API_URL);
+        
         try {
-            const res = await axios.post(`${api}/api/auth/login`, {
+            const response = await apiClient.post<LoginResponse>("/api/auth/login", {
                 username,
                 password,
             });
-            const { token, user } = res.data;
+            
+            const { token, user } = response;
             const { role, username: userUsername } = user;
 
             localStorage.setItem("token", token);
@@ -30,17 +35,26 @@ export default function LoginPage() {
             localStorage.setItem("username", userUsername);
             localStorage.setItem("user", JSON.stringify(user));
 
-            // Handle both legacy "admin" and new "superadmin" roles
-            if (role === "admin" || role === "superadmin") {
+            console.log("Login successful! User role:", role);
+
+            // Navigate based on role - all roles go to dashboard
+            if (role === "superadmin") {
                 navigate("/admin/dashboard");
             } else if (role === "merchant") {
-                navigate("/admin/dashboard"); // Merchants also get admin dashboard
+                navigate("/admin/dashboard");
             } else {
                 navigate("/");
             }
-        } catch (err) {
-            console.error(err);
+        } catch (err: unknown) {
             console.error("Login failed:", err);
+            let errorMessage = "Login failed. Please try again.";
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (typeof err === 'object' && err !== null && 'response' in err) {
+                const axiosError = err as { response?: { data?: { message?: string } } };
+                errorMessage = axiosError.response?.data?.message || errorMessage;
+            }
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -124,6 +138,17 @@ export default function LoginPage() {
                                 </motion.p>
                             </div>
 
+
+                            {/* Error Message */}
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm text-center"
+                                >
+                                    {error}
+                                </motion.div>
+                            )}
 
                             {/* Login Form */}
                             <form onSubmit={handleLogin} className="space-y-6">

@@ -6,14 +6,12 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "regions": ["bom1"],
-  "env": {
-    "VITE_API_URL": "https://api.loanpaymentsystem.xyz",
-    "VITE_FRONTEND_URL": "https://pay.loanpaymentsystem.xyz"
-  },
   "build": {
     "env": {
       "VITE_API_URL": "https://api.loanpaymentsystem.xyz",
-      "VITE_FRONTEND_URL": "https://pay.loanpaymentsystem.xyz"
+      "VITE_FRONTEND_URL": "https://pay.loanpaymentsystem.xyz",
+      "VITE_SENTRY_DSN": "https://2210dd2b22251d8aa99b88692b2bde10@o4507587199369216.ingest.us.sentry.io/4510063524511744",
+      "VITE_APP_VERSION": "1.0.0"
     }
   },
   "rewrites": [
