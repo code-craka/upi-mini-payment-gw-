@@ -1,18 +1,16 @@
 {
   "version": 2,
   "name": "upi-gateway-backend",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "builds": [
     {
-      "src": "dist/server.js",
+      "src": "src/server.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/server.js"
+      "dest": "/src/server.ts"
     }
   ],
   "headers": [
