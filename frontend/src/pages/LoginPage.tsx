@@ -27,7 +27,32 @@ export default function LoginPage() {
                 password,
             });
             
-            const { token, user } = response;
+            console.log("API Response:", response);
+            
+            // Handle both response formats for backward compatibility
+            let token: string;
+            let user: { role: string; username: string; _id?: string };
+            
+            if ('user' in response && response.user) {
+                // New format: { token, user: { role, username, ... } }
+                token = response.token;
+                user = response.user;
+            } else {
+                // Legacy format: { token, role, username, ... }
+                const legacyResponse = response as unknown as { 
+                    token: string; 
+                    role: string; 
+                    username: string; 
+                    _id?: string; 
+                };
+                token = legacyResponse.token;
+                user = {
+                    role: legacyResponse.role,
+                    username: legacyResponse.username,
+                    _id: legacyResponse._id || 'unknown'
+                };
+            }
+            
             const { role, username: userUsername } = user;
 
             localStorage.setItem("token", token);
