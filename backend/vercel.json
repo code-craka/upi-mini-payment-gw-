@@ -1,25 +1,20 @@
 {
   "version": 2,
   "name": "upi-gateway-backend",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "builds": [
     {
-      "src": "server.js",
+      "src": "dist/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "dist/server.js"
     }
   ],
-  "env": {
-    "MONGO_URI": "mongodb+srv://rihanawsacc_db_user:YmYoVTUpkL62CnG1@upi-admin-gw-main.eqhavnh.mongodb.net/?retryWrites=true&w=majority&appName=upi-admin-gw-main",
-    "JWT_SECRET": "7lMSSpjjMbd0pDv74dI40UhW1rpVsUJBEWkWjPCIJzbdrvBucLzWLEsTK1rJwKetBU7447EE/xFvzafSYHUYfQ==",
-    "APP_BASE_URL": "https://pay.loanpaymentsystem.xyz",
-    "API_BASE_URL": "https://api.loanpaymentsystem.xyz",
-    "SENTRY_DSN": "https://2210dd2b22251d8aa99b88692b2bde10@o4507587199369216.ingest.us.sentry.io/4507587213787136"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
