@@ -13,6 +13,28 @@ import { AuthRequest } from "../middleware/auth.js";
 import { UserRole } from "../models/User.js";
 
 /**
+ * Sanitize user input for safe logging
+ * Prevents log injection, format string attacks, and other log-based exploits
+ */
+function sanitizeLogInput(input: string): string {
+    if (typeof input !== 'string') {
+        return String(input);
+    }
+    
+    return input
+        // Remove newlines and carriage returns to prevent log injection
+        .replace(/[\n\r]/g, ' ')
+        // Escape format string specifiers
+        .replace(/%/g, '%%')
+        // Remove null bytes
+        .replace(/\0/g, '')
+        // Limit length to prevent log flooding
+        .slice(0, 1000)
+        // Trim whitespace
+        .trim();
+}
+
+/**
  * Log levels in order of severity
  */
 export enum LogLevel {
@@ -182,19 +204,22 @@ class Logger {
 
         // Console logging (development)
         if (this.enableConsole) {
+            const safeMessage = String(formattedMessage).replace(/%/g, '%%'); // Escape format specifiers
+            const metadataStr = context?.metadata ? JSON.stringify(context.metadata, null, 2) : '';
+            
             switch (level) {
                 case LogLevel.DEBUG:
-                    console.debug(formattedMessage, context?.metadata ? JSON.stringify(context.metadata, null, 2) : '');
+                    console.debug('%s', safeMessage, metadataStr);
                     break;
                 case LogLevel.INFO:
-                    console.info(formattedMessage);
+                    console.info('%s', safeMessage);
                     break;
                 case LogLevel.WARN:
-                    console.warn(formattedMessage);
+                    console.warn('%s', safeMessage);
                     break;
                 case LogLevel.ERROR:
                 case LogLevel.SECURITY:
-                    console.error(formattedMessage, error?.stack || '');
+                    console.error('%s', safeMessage, error?.stack || '');
                     break;
             }
         }
@@ -372,14 +397,14 @@ class Logger {
 
             // Log performance metrics
             if (metrics.duration > 1000) { // Log slow operations
-                this.warn(`Slow operation detected: ${operation}`, {
-                    action: operation,
+                this.warn(`Slow operation detected: ${sanitizeLogInput(operation)}`, {
+                    action: sanitizeLogInput(operation),
                     duration: metrics.duration,
                     metadata: metrics
                 });
             } else {
-                this.debug(`Performance: ${operation}`, {
-                    action: operation,
+                this.debug(`Performance: ${sanitizeLogInput(operation)}`, {
+                    action: sanitizeLogInput(operation),
                     duration: metrics.duration,
                     metadata: metrics
                 });
@@ -426,8 +451,10 @@ export const requestLogger = (req: Request, res: any, next: any): void => {
     // Add logger to request for use in route handlers
     (req as any).logger = logger.child(context);
 
-    // Log request start
-    logger.info(`Request started: ${req.method} ${req.originalUrl || req.url}`, context);
+    // Log request start (sanitize user-controlled URL)
+    const safeMethod = sanitizeLogInput(req.method);
+    const safeUrl = sanitizeLogInput(req.originalUrl || req.url || '');
+    logger.info(`Request started: ${safeMethod} ${safeUrl}`, context);
 
     // Log response when finished
     res.on('finish', () => {
@@ -442,9 +469,9 @@ export const requestLogger = (req: Request, res: any, next: any): void => {
         };
 
         if (res.statusCode >= 400) {
-            logger.warn(`Request completed with error: ${req.method} ${req.originalUrl || req.url}`, responseContext);
+            logger.warn(`Request completed with error: ${safeMethod} ${safeUrl}`, responseContext);
         } else {
-            logger.info(`Request completed: ${req.method} ${req.originalUrl || req.url}`, responseContext);
+            logger.info(`Request completed: ${safeMethod} ${safeUrl}`, responseContext);
         }
     });
 

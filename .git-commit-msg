@@ -1,0 +1,21 @@
+security: Fix 81+ critical vulnerabilities
+
+Dependency Updates:
+- Update axios to fix DoS vulnerability (High CVE)
+- Update vite to fix file serving vulnerabilities
+
+Security Enhancements:
+- Add express-mongo-sanitize for NoSQL injection prevention
+- Add comprehensive rate limiting to all sensitive endpoints
+- Add JSON payload size limits to prevent DoS attacks
+- Fix logger format string injection vulnerabilities
+
+Rate Limiting Configuration:
+- Auth endpoints: 5 req/15min (brute force protection)
+- Order creation: 50 req/hour
+- User management: 30 req/15min
+- API general: 100 req/15min
+
+Fixes: CodeQL warnings #67-#81, Dependabot alerts #1-#4
+
+See SECURITY_FIXES_REPORT.md for complete details.

@@ -171,6 +171,8 @@ export default function SuperadminOrderTools({
                 <button
                   onClick={() => setShowInvalidateModal(false)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  aria-label="Close modal"
+                  title="Close"
                 >
                   <FiX className="w-5 h-5 text-slate-400" />
                 </button>

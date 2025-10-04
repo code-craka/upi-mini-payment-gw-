@@ -5,6 +5,7 @@ import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
+import mongoSanitize from "express-mongo-sanitize";
 import authRouter from "./routes/auth.js";
 import dashboardRouter from "./routes/dashboard.js";
 import ordersRouter from "./routes/order.js";
@@ -15,7 +16,18 @@ import { requestLogger } from './utils/logger.js';
 config({ path: '.env.local' });
 
 const app = express();
-app.use(express.json());
+
+// 🔒 Security: Parse JSON with size limit to prevent DoS
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 🔒 Security: Sanitize data to prevent MongoDB injection
+app.use(mongoSanitize({
+    replaceWith: '_',
+    onSanitize: ({ req, key }) => {
+        console.warn(`Sanitized potentially malicious input in ${req.path}: ${key}`);
+    }
+}));
 
 // ✅ Request logging middleware
 app.use(requestLogger);

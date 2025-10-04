@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import { admin, protect, superadmin, merchant, AuthRequest } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 import User, { UserRole } from "../models/User.js";
 import { PermissionHelpers, ROLE_DISPLAY_NAMES } from "../utils/roleHelpers.js";
 
@@ -113,7 +114,11 @@ router.post(
  * POST /login - Enhanced login with comprehensive user data
  * Maintains backward compatibility
  */
-router.post("/login", async (req: Request, res: Response) => {
+/**
+ * POST /login - User authentication
+ * Rate limited to prevent brute force attacks
+ */
+router.post("/login", authLimiter, async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body;
 
