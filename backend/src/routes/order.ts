@@ -1,27 +1,52 @@
 import { Request, Response, Router } from "express";
-import { rateLimit } from "express-rate-limit";
+import { body, query, validationResult } from "express-validator";
 import { customAlphabet } from "nanoid";
 import {
-    admin,
     AuthRequest,
     protect,
     superadmin,
     merchant
 } from "../middleware/auth.js";
+import {
+    orderLimiter,
+    apiLimiter,
+    dashboardLimiter
+} from "../middleware/rateLimiter.js";
 import Order, { OrderMetadata } from "../models/Order.js";
-import User from "../models/User.js";
 import { buildUpiLink, isValidVpa, maskVpa } from "../utils/upi.js";
 import { DataFilters, PermissionHelpers } from "../utils/roleHelpers.js";
+import { QuerySanitizer, InputSanitizer } from "../utils/queryHelpers.js";
 
 const router = Router();
 const nano = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
-const utrLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 5 });
+
+// Input validation helpers
+const validOrderStatuses = ['PENDING', 'SUBMITTED', 'VERIFIED', 'EXPIRED', 'INVALIDATED'];
 
 /**
  * POST / - Create a new order with enhanced metadata tracking
  */
-router.post("/", protect, async (req: AuthRequest, res: Response) => {
+router.post("/", 
+    orderLimiter,
+    protect,
+    [
+        body('amount').isNumeric().withMessage('Amount must be numeric'),
+        body('vpa').isString().trim().withMessage('VPA must be a string'),
+        body('merchantName').optional().isString().trim(),
+        body('note').optional().isString().trim(),
+        body('expiresInSec').optional().isInt({ min: 60, max: 86400 })
+    ],
+    async (req: AuthRequest, res: Response) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: "Validation failed",
+                code: "VALIDATION_ERROR",
+                errors: errors.array()
+            });
+        }
+
         const {
             amount,
             vpa,
@@ -61,7 +86,7 @@ router.post("/", protect, async (req: AuthRequest, res: Response) => {
             platform: req.get("X-Platform") || "web"
         };
 
-        const order = await Order.create({
+        await Order.create({
             user: req.user?.userId,
             createdBy: req.user?.userId,
             orderId,
@@ -95,7 +120,15 @@ router.post("/", protect, async (req: AuthRequest, res: Response) => {
  * - Merchant: sees orders from their users
  * - User: sees only their own orders
  */
-router.get("/", protect, async (req: AuthRequest, res: Response) => {
+router.get("/", 
+    dashboardLimiter,
+    protect,
+    [
+        query('page').optional().isInt({ min: 1 }),
+        query('limit').optional().isInt({ min: 1, max: 100 }),
+        query('status').optional().isIn(validOrderStatuses)
+    ],
+    async (req: AuthRequest, res: Response) => {
     try {
         if (!req.user) {
             return res.status(401).json({
@@ -104,20 +137,25 @@ router.get("/", protect, async (req: AuthRequest, res: Response) => {
             });
         }
 
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: "Validation failed",
+                code: "VALIDATION_ERROR",
+                errors: errors.array()
+            });
+        }
+
         const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 20;
+        const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
         const skip = (page - 1) * limit;
         const status = req.query.status as string;
 
-        const filter = DataFilters.getOrderFilter(req.user.role, req.user.userId) as any;
-
-        // Add status filter if provided
-        if (status) {
-            filter.status = status;
-        }
+        const baseFilter = DataFilters.getOrderFilter(req.user.role, req.user.userId);
+        const sanitizedFilter = QuerySanitizer.buildOrderFilter(baseFilter, { status });
 
         const [orders, total] = await Promise.all([
-            Order.find(filter)
+            Order.find(sanitizedFilter)
                 .populate("user", "username role")
                 .populate("merchant", "username")
                 .populate("createdBy", "username role")
@@ -125,7 +163,7 @@ router.get("/", protect, async (req: AuthRequest, res: Response) => {
                 .skip(skip)
                 .limit(limit)
                 .lean(),
-            Order.countDocuments(filter)
+            Order.countDocuments(sanitizedFilter)
         ]);
 
         // Mask VPA for security (except for superadmin)
@@ -155,36 +193,50 @@ router.get("/", protect, async (req: AuthRequest, res: Response) => {
 /**
  * GET /all - Superadmin-only endpoint for global order view with comprehensive stats
  */
-router.get("/all", protect, superadmin, async (req: AuthRequest, res: Response) => {
+router.get("/all", 
+    apiLimiter,
+    protect, 
+    superadmin,
+    [
+        query('page').optional().isInt({ min: 1 }),
+        query('limit').optional().isInt({ min: 1, max: 100 }),
+        query('status').optional().isIn(validOrderStatuses),
+        query('merchantId').optional().isMongoId(),
+        query('startDate').optional().isISO8601(),
+        query('endDate').optional().isISO8601(),
+        query('minAmount').optional().isFloat({ min: 0 }),
+        query('maxAmount').optional().isFloat({ min: 0 })
+    ],
+    async (req: AuthRequest, res: Response) => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 50;
-        const skip = (page - 1) * limit;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: "Validation failed",
+                code: "VALIDATION_ERROR",
+                errors: errors.array()
+            });
+        }
 
-        // Advanced filtering options for superadmin
-        const filter: any = { isActive: true };
-        const { status, merchantId, startDate, endDate, minAmount, maxAmount } = req.query;
+        const { page: validPage, limit: validLimit, skip } = QuerySanitizer.validatePagination(req.query.page, req.query.limit);
 
-        if (status) filter.status = status;
-        if (merchantId) filter.merchant = merchantId;
-        if (startDate) filter.createdAt = { ...filter.createdAt, $gte: new Date(startDate as string) };
-        if (endDate) filter.createdAt = { ...filter.createdAt, $lte: new Date(endDate as string) };
-        if (minAmount) filter.amount = { ...filter.amount, $gte: Number(minAmount) };
-        if (maxAmount) filter.amount = { ...filter.amount, $lte: Number(maxAmount) };
+        // Advanced filtering options for superadmin with secure input handling
+        const baseFilter = { isActive: true };
+        const sanitizedFilter = QuerySanitizer.buildOrderFilter(baseFilter, req.query);
 
         const [orders, total, stats] = await Promise.all([
-            Order.find(filter)
+            Order.find(sanitizedFilter)
                 .populate("user", "username role")
                 .populate("merchant", "username")
                 .populate("createdBy", "username role")
                 .populate("invalidatedBy", "username role")
                 .sort({ createdAt: -1 })
                 .skip(skip)
-                .limit(limit)
+                .limit(validLimit)
                 .lean(),
-            Order.countDocuments(filter),
+            Order.countDocuments(sanitizedFilter),
             Order.aggregate([
-                { $match: filter },
+                { $match: sanitizedFilter },
                 {
                     $group: {
                         _id: null,
@@ -209,10 +261,10 @@ router.get("/all", protect, superadmin, async (req: AuthRequest, res: Response) 
         res.json({
             orders,
             pagination: {
-                page,
-                limit,
+                page: validPage,
+                limit: validLimit,
                 total,
-                pages: Math.ceil(total / limit)
+                pages: Math.ceil(total / validLimit)
             },
             statistics: {
                 totalAmount: stats[0]?.totalAmount || 0,
@@ -232,10 +284,18 @@ router.get("/all", protect, superadmin, async (req: AuthRequest, res: Response) 
 /**
  * GET /:orderId - Get specific order with role-based access
  */
-router.get("/:orderId", async (req: Request, res: Response) => {
+router.get("/:orderId", apiLimiter, async (req: Request, res: Response) => {
     try {
+        const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+        if (!sanitizedOrderId) {
+            return res.status(400).json({
+                message: "Invalid order ID format",
+                code: "INVALID_ORDER_ID"
+            });
+        }
+
         const order = await Order.findOne({
-            orderId: req.params.orderId,
+            orderId: sanitizedOrderId,
             isActive: true
         })
             .populate("user", "username")
@@ -276,19 +336,41 @@ router.get("/:orderId", async (req: Request, res: Response) => {
  */
 router.post(
     "/:orderId/utr",
-    utrLimiter,
+    orderLimiter,
+    [
+        body('utr').isString().trim().matches(/^[0-9A-Za-z]{6,32}$/).withMessage('Invalid UTR format')
+    ],
     async (req: Request, res: Response) => {
         try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({
+                    message: "Validation failed",
+                    code: "VALIDATION_ERROR",
+                    errors: errors.array()
+                });
+            }
+
             const { utr } = req.body;
-            if (!utr || !/^[0-9A-Za-z]{6,32}$/.test(utr)) {
+            const sanitizedUTR = InputSanitizer.sanitizeUTR(utr);
+            const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+
+            if (!sanitizedUTR) {
                 return res.status(400).json({
                     message: "Invalid UTR format",
                     code: "INVALID_UTR"
                 });
             }
 
+            if (!sanitizedOrderId) {
+                return res.status(400).json({
+                    message: "Invalid order ID format",
+                    code: "INVALID_ORDER_ID"
+                });
+            }
+
             const order = await Order.findOne({
-                orderId: req.params.orderId,
+                orderId: sanitizedOrderId,
                 isActive: true
             });
 
@@ -316,7 +398,7 @@ router.post(
                 });
             }
 
-            order.utr = utr;
+            order.utr = sanitizedUTR;
             order.status = "SUBMITTED";
             await order.save();
 
@@ -337,10 +419,18 @@ router.post(
 /**
  * POST /:orderId/verify - Verify order (role-based permissions)
  */
-router.post("/:orderId/verify", protect, merchant, async (req: AuthRequest, res: Response) => {
+router.post("/:orderId/verify", apiLimiter, protect, merchant, async (req: AuthRequest, res: Response) => {
     try {
+        const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+        if (!sanitizedOrderId) {
+            return res.status(400).json({
+                message: "Invalid order ID format",
+                code: "INVALID_ORDER_ID"
+            });
+        }
+
         const order = await Order.findOne({
-            orderId: req.params.orderId,
+            orderId: sanitizedOrderId,
             isActive: true
         });
 
@@ -375,7 +465,7 @@ router.post("/:orderId/verify", protect, merchant, async (req: AuthRequest, res:
         }
 
         const updatedOrder = await Order.findOneAndUpdate(
-            { orderId: req.params.orderId },
+            { orderId: sanitizedOrderId },
             { status: "VERIFIED" },
             { new: true }
         );
@@ -396,11 +486,37 @@ router.post("/:orderId/verify", protect, merchant, async (req: AuthRequest, res:
 /**
  * POST /:orderId/invalidate - Superadmin-only order invalidation
  */
-router.post("/:orderId/invalidate", protect, superadmin, async (req: AuthRequest, res: Response) => {
+router.post("/:orderId/invalidate", 
+    apiLimiter,
+    protect, 
+    superadmin,
+    [
+        body('reason').optional().isString().trim().isLength({ max: 500 })
+    ],
+    async (req: AuthRequest, res: Response) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: "Validation failed",
+                code: "VALIDATION_ERROR",
+                errors: errors.array()
+            });
+        }
+
         const { reason } = req.body;
+        const sanitizedReason = reason ? InputSanitizer.sanitizeString(reason, 500) : undefined;
+        const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+
+        if (!sanitizedOrderId) {
+            return res.status(400).json({
+                message: "Invalid order ID format",
+                code: "INVALID_ORDER_ID"
+            });
+        }
+        
         const order = await Order.findOne({
-            orderId: req.params.orderId,
+            orderId: sanitizedOrderId,
             isActive: true
         });
 
@@ -419,12 +535,12 @@ router.post("/:orderId/invalidate", protect, superadmin, async (req: AuthRequest
         }
 
         const updatedOrder = await Order.findOneAndUpdate(
-            { orderId: req.params.orderId },
+            { orderId: sanitizedOrderId },
             {
                 status: "INVALIDATED",
                 invalidatedBy: req.user!.userId,
                 invalidatedAt: new Date(),
-                invalidationReason: reason
+                invalidationReason: sanitizedReason
             },
             { new: true }
         );
@@ -445,10 +561,18 @@ router.post("/:orderId/invalidate", protect, superadmin, async (req: AuthRequest
 /**
  * DELETE /:orderId - Superadmin-only soft deletion
  */
-router.delete("/:orderId", protect, superadmin, async (req: AuthRequest, res: Response) => {
+router.delete("/:orderId", apiLimiter, protect, superadmin, async (req: AuthRequest, res: Response) => {
     try {
+        const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+        if (!sanitizedOrderId) {
+            return res.status(400).json({
+                message: "Invalid order ID format",
+                code: "INVALID_ORDER_ID"
+            });
+        }
+
         const order = await Order.findOne({
-            orderId: req.params.orderId,
+            orderId: sanitizedOrderId,
             isActive: true
         });
 
@@ -460,7 +584,7 @@ router.delete("/:orderId", protect, superadmin, async (req: AuthRequest, res: Re
         }
 
         await Order.findOneAndUpdate(
-            { orderId: req.params.orderId },
+            { orderId: sanitizedOrderId },
             {
                 isActive: false,
                 deletedAt: new Date(),
