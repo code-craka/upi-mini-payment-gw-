@@ -1,16 +1,20 @@
 # Remaining GitHub Dependabot Vulnerabilities - Action Plan
 
 ## Current Status
+
 GitHub is reporting **3 vulnerabilities** on the default branch:
+
 - **1 High severity**
 - **2 Low severity**
 
 ## How to Check the Vulnerabilities
 
 ### Step 1: Visit Dependabot Alerts
+
 Go to: https://github.com/code-craka/upi-mini-payment-gw-/security/dependabot
 
 This will show you:
+
 - Specific packages affected
 - CVE numbers
 - Recommended fixes
@@ -19,6 +23,7 @@ This will show you:
 ### Step 2: Review Each Alert
 
 For each vulnerability, note:
+
 1. **Package name** (e.g., `axios`, `vite`, `mongoose`, etc.)
 2. **Current version** vs **Fixed version**
 3. **Severity level** (High, Medium, Low)
@@ -28,6 +33,7 @@ For each vulnerability, note:
 ## Already Fixed Vulnerabilities
 
 We have already updated:
+
 - ✅ **axios** → 1.12.2 (was vulnerable to DoS)
 - ✅ **vite** → 7.1.9 (had file serving issues)
 
@@ -36,6 +42,7 @@ We have already updated:
 The 3 remaining vulnerabilities are likely in one of these categories:
 
 ### 1. Transitive Dependencies
+
 Sometimes vulnerabilities are in packages that your dependencies use, not direct dependencies.
 
 **How to check:**
@@ -50,6 +57,7 @@ cd backend && npm update
 ```
 
 ### 2. Dev Dependencies
+
 Vulnerabilities in development-only packages (lower priority for production).
 
 **How to check:**
@@ -59,6 +67,7 @@ npm list --dev --depth=0
 ```
 
 ### 3. Package Lock Files
+
 Sometimes the lock files reference old vulnerable versions even after updates.
 
 **How to fix:**
@@ -81,11 +90,13 @@ git push origin main
 ## Automated Fix Options
 
 ### Option 1: Accept Dependabot PRs
+
 1. Go to https://github.com/code-craka/upi-mini-payment-gw-/pulls
 2. Look for PRs created by **dependabot[bot]**
 3. Review and merge them
 
 ### Option 2: Use npm audit fix
+
 ```bash
 # Frontend
 cd /Users/rihan/all-coding-project/UPI_MINI_GATEWAY/frontend
@@ -105,6 +116,7 @@ git push origin main
 ```
 
 ### Option 3: Manual Package Updates
+
 If specific packages need updates:
 
 ```bash
@@ -155,6 +167,7 @@ echo "5. Commit and push changes"
 After fixing vulnerabilities:
 
 ### 1. Backend Tests
+
 ```bash
 cd backend
 npm run build          # Ensure TypeScript compiles
@@ -163,6 +176,7 @@ curl http://localhost:3000/  # Verify API responds
 ```
 
 ### 2. Frontend Tests
+
 ```bash
 cd frontend
 npm run build          # Ensure Vite builds successfully
@@ -171,6 +185,7 @@ npm run dev            # Test local dev server
 ```
 
 ### 3. Integration Tests
+
 - Test login functionality
 - Test order creation
 - Test user management
@@ -181,15 +196,18 @@ npm run dev            # Test local dev server
 ## Priority Levels
 
 ### High Priority (Security Critical)
+
 - **High severity** vulnerabilities in production dependencies
 - Vulnerabilities with known exploits
 - Authentication/authorization related issues
 
 ### Medium Priority
+
 - **Low severity** vulnerabilities in production dependencies
 - Vulnerabilities without active exploits
 
 ### Low Priority  
+
 - Vulnerabilities in dev dependencies
 - Issues only affecting development environment
 - Outdated but non-vulnerable packages
@@ -214,6 +232,7 @@ npm run dev            # Test local dev server
 ## Contact GitHub Support
 
 If vulnerabilities persist after all fixes:
+
 1. Check if it's a false positive
 2. Review the specific CVE details
 3. Contact package maintainers
@@ -222,6 +241,7 @@ If vulnerabilities persist after all fixes:
 ## Verification
 
 After applying all fixes, verify by:
+
 1. Checking GitHub Security tab shows 0 vulnerabilities
 2. Running `npm audit` shows 0 vulnerabilities
 3. All tests pass
@@ -230,6 +250,7 @@ After applying all fixes, verify by:
 ---
 
 **Next Steps:**
+
 1. Visit the Dependabot URL to see specific vulnerabilities
 2. Apply recommended fixes
 3. Test thoroughly
