@@ -1,6 +1,7 @@
 # Security Vulnerabilities Fixed - October 4, 2025
 
 ## Summary
+
 Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, including critical NoSQL injection risks, rate limiting issues, and dependency vulnerabilities.
 
 ## ✅ Fixes Applied
@@ -8,6 +9,7 @@ Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, incl
 ### 1. Dependency Vulnerabilities (Dependabot)
 
 #### Frontend Dependencies
+
 - **axios DoS vulnerability (HIGH)**: Updated axios to latest version
   - Issue: Axios vulnerable to DoS attack through lack of data size check
   - Fix: `npm update axios` in frontend
@@ -19,14 +21,16 @@ Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, incl
 
 ### 2. NoSQL Injection Prevention (CodeQL #67-#79)
 
-#### Issues:
+#### Issues
+
 - Database queries built from user-controlled sources in:
   - `routes/auth.ts` (lines 41, 60, 128)
   - `routes/users.ts` (lines 117, 136, 207, 235)
   - `routes/order.ts` (lines 120, 128, 176, 185, 423)
   - `routes/debug.ts` (line 261)
 
-#### Fixes Applied:
+#### Fixes Applied
+
 1. **Added `express-mongo-sanitize` middleware**
    - Automatically sanitizes all request data
    - Replaces MongoDB operators (`$`, `.`) with safe characters
@@ -34,6 +38,7 @@ Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, incl
    - Added logging for sanitized inputs
 
 2. **Configuration in `backend/src/index.ts`:**
+
    ```typescript
    import mongoSanitize from "express-mongo-sanitize";
    
@@ -46,6 +51,7 @@ Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, incl
    ```
 
 3. **Added payload size limits** to prevent DoS:
+
    ```typescript
    app.use(express.json({ limit: '10mb' }));
    app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -53,14 +59,16 @@ Fixed **81+ security vulnerabilities** identified by CodeQL and Dependabot, incl
 
 ### 3. Rate Limiting (CodeQL #57-#66)
 
-#### Issues:
+#### Issues
+
 - Missing rate limiting on sensitive endpoints:
   - Authentication endpoints (login, register)
   - User management operations
   - Order creation endpoints
   - Dashboard and analytics endpoints
 
-#### Fixes Applied:
+#### Fixes Applied
+
 Created comprehensive rate limiting system in `backend/src/middleware/rateLimiter.ts`:
 
 **Rate Limit Configurations:**
@@ -74,6 +82,7 @@ Created comprehensive rate limiting system in `backend/src/middleware/rateLimite
 | **Dashboard/Analytics** | 50 requests | 5 minutes | Read-heavy operations |
 
 **Applied to routes:**
+
 - `routes/auth.ts`: Added `authLimiter` to login endpoint
 - Additional rate limiters ready for:
   - User creation/management endpoints
@@ -81,6 +90,7 @@ Created comprehensive rate limiting system in `backend/src/middleware/rateLimite
   - Dashboard data endpoints
 
 **Features:**
+
 - Returns `429 Too Many Requests` with descriptive messages
 - Adds standard rate limit headers
 - Supports trusted IP whitelisting via environment variable
@@ -88,12 +98,14 @@ Created comprehensive rate limiting system in `backend/src/middleware/rateLimite
 
 ### 4. Format String Injection (CodeQL #80-#81)
 
-#### Issues:
+#### Issues
+
 - Externally-controlled format strings in logger:
   - `utils/logger.ts` (lines 187, 197)
   - User-provided values could be interpreted as format specifiers
 
-#### Fixes Applied:
+#### Fixes Applied
+
 Updated logging functions to use parameterized logging:
 
 ```typescript
@@ -108,6 +120,7 @@ console.error('%s', safeMessage, error?.stack || '');
 ```
 
 **Protection:**
+
 - Escapes format specifiers (%) in user input
 - Uses parameterized logging with %s
 - Prevents format string injection attacks
@@ -115,6 +128,7 @@ console.error('%s', safeMessage, error?.stack || '');
 ## 📦 New Dependencies Added
 
 ### Backend
+
 ```json
 {
   "express-mongo-sanitize": "^2.2.0",
@@ -123,6 +137,7 @@ console.error('%s', safeMessage, error?.stack || '');
 ```
 
 ### Frontend
+
 ```json
 {
   "axios": "^1.7.9" (updated),
@@ -154,6 +169,7 @@ console.error('%s', safeMessage, error?.stack || '');
 ## 🚀 Deployment Steps
 
 1. **Commit changes:**
+
    ```bash
    cd /Users/rihan/all-coding-project/UPI_MINI_GATEWAY
    git add .
@@ -162,6 +178,7 @@ console.error('%s', safeMessage, error?.stack || '');
    ```
 
 2. **Environment Variables** (Add to Vercel if not present):
+
    ```
    TRUSTED_IPS=comma,separated,list,of,trusted,ips (optional)
    ```
@@ -181,7 +198,8 @@ console.error('%s', safeMessage, error?.stack || '');
 
 ## ✅ Testing
 
-### Test Rate Limiting:
+### Test Rate Limiting
+
 ```bash
 # Try 6 login attempts in 15 minutes - should get rate limited
 for i in {1..6}; do
@@ -191,7 +209,8 @@ for i in {1..6}; do
 done
 ```
 
-### Test Mongo Sanitization:
+### Test Mongo Sanitization
+
 ```bash
 # Try NoSQL injection - should be sanitized
 curl -X POST https://api.loanpaymentsystem.xyz/api/auth/login \
