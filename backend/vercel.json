@@ -1,16 +1,20 @@
 {
   "version": 2,
   "name": "upi-gateway-backend",
+  "framework": "express",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
   "builds": [
     {
-      "src": "src/server.ts",
+      "src": "dist/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/src/server.ts"
+      "dest": "/dist/server.js"
     }
   ],
   "headers": [
