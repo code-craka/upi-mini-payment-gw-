@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { admin, protect, superadmin, merchant, AuthRequest } from "../middleware/auth.js";
+import { protect, superadmin, merchant, AuthRequest } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
 import User, { UserRole } from "../models/User.js";
 import { PermissionHelpers, ROLE_DISPLAY_NAMES } from "../utils/roleHelpers.js";
@@ -10,6 +10,12 @@ const router = Router();
 
 /**
  * POST /register - Enhanced registration with parent assignment logic
+ * ⚠️ DEPRECATED: Use POST /api/users instead (RESTful endpoint)
+ *
+ * This endpoint is maintained for backward compatibility.
+ * Functionality is duplicated in users.ts route.
+ * All new implementations should use POST /api/users endpoint.
+ *
  * Role-based registration restrictions maintained
  */
 router.post(

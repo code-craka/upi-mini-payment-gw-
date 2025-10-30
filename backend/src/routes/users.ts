@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-    admin,
     protect,
     superadmin,
     merchant,
@@ -86,10 +85,23 @@ router.get("/merchants", protect, superadmin, async (req: AuthRequest, res) => {
 });
 
 /**
- * POST / - Create a new user with role-based restrictions
- * - Superadmin: can create any role
+ * POST / - Create a new user with role-based restrictions (CANONICAL ENDPOINT)
+ * ✅ RECOMMENDED: Use this endpoint for user creation
+ *
+ * Permissions by role:
+ * - Superadmin: can create any role (superadmin, merchant, user)
  * - Merchant: can only create users under themselves
  * - User: cannot create users
+ *
+ * Note: Deprecated endpoint /api/auth/register has identical functionality.
+ * This RESTful endpoint should be used for all new implementations.
+ *
+ * @param {string} username - User's login name (required)
+ * @param {string} password - User's password (required)
+ * @param {string} role - User's role (optional, defaults to "user")
+ * @param {string} parentId - Merchant ID for users (required when superadmin creates users)
+ *
+ * @returns {object} - { message, user, code }
  */
 router.post("/", protect, merchant, async (req: AuthRequest, res) => {
     try {

@@ -24,6 +24,8 @@ export default function UserCreateForm({
     parentId: ""
   });
   const [merchants, setMerchants] = useState<User[]>([]);
+  const [loadingMerchants, setLoadingMerchants] = useState(false);
+  const [merchantError, setMerchantError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
@@ -55,9 +57,12 @@ export default function UserCreateForm({
   }, [isOpen, currentUserRole]);
 
   const fetchMerchants = async () => {
+    setLoadingMerchants(true);
+    setMerchantError("");
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users?role=merchant`, {
+      // Use the correct /api/users/merchants endpoint
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/merchants`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
@@ -66,10 +71,20 @@ export default function UserCreateForm({
 
       if (response.ok) {
         const data = await response.json();
-        setMerchants(data.users || []);
+        // Backend returns direct array, not wrapped object
+        setMerchants(Array.isArray(data) ? data : []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Failed to load merchants (${response.status})`;
+        setMerchantError(errorMessage);
+        console.error("Failed to fetch merchants:", errorMessage);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Network error while loading merchants";
+      setMerchantError(errorMessage);
       console.error("Failed to fetch merchants:", error);
+    } finally {
+      setLoadingMerchants(false);
     }
   };
 
@@ -312,6 +327,17 @@ export default function UserCreateForm({
                 <label className="block text-slate-300 text-sm font-medium mb-2">
                   Assign to Merchant
                 </label>
+
+                {/* Error state for merchant fetch */}
+                {merchantError && (
+                  <div className="mb-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                    <div className="flex items-center space-x-2 text-red-400">
+                      <FiAlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-xs">{merchantError}</span>
+                    </div>
+                  </div>
+                )}
+
                 <select
                   value={formData.parentId}
                   onChange={(e) => handleInputChange("parentId", e.target.value)}
@@ -319,15 +345,20 @@ export default function UserCreateForm({
                   className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white focus:bg-white/10 focus:outline-none transition-all duration-300 ${
                     errors.parentId ? "border-red-500/50" : "border-white/20 focus:border-purple-400"
                   }`}
-                  disabled={loading}
+                  disabled={loading || loadingMerchants}
                 >
-                  <option value="" className="bg-slate-800">Select a merchant...</option>
+                  <option value="" className="bg-slate-800">
+                    {loadingMerchants ? "Loading merchants..." :
+                     merchants.length === 0 && !merchantError ? "No merchants available" :
+                     "Select a merchant..."}
+                  </option>
                   {merchants.map((merchant) => (
                     <option key={merchant._id} value={merchant._id} className="bg-slate-800">
                       {merchant.username}
                     </option>
                   ))}
                 </select>
+
                 {errors.parentId && (
                   <p className="text-red-400 text-xs mt-1">{errors.parentId}</p>
                 )}
