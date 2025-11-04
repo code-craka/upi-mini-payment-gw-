@@ -9,16 +9,16 @@ import authRouter from "./routes/auth.js";
 import dashboardRouter from "./routes/dashboard.js";
 import ordersRouter from "./routes/order.js";
 import usersRouter from "./routes/users.js";
-import { globalErrorHandler, notFoundHandler } from './utils/errorHandler.js';
-import { requestLogger } from './utils/logger.js';
+import { globalErrorHandler, notFoundHandler } from "./utils/errorHandler.js";
+import { requestLogger } from "./utils/logger.js";
 
-config({ path: '.env.local' });
+config({ path: ".env.local" });
 
 const app = express();
 
 // 🔒 Security: Parse JSON with size limit to prevent DoS
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // 🔒 Security: NoSQL injection protection
 // Note: express-mongo-sanitize removed due to Express 5 incompatibility
@@ -37,6 +37,8 @@ const allowedOrigins = [
     // Production domains
     "https://pay.loanpaymentsystem.xyz",
     "https://www.pay.loanpaymentsystem.xyz",
+    "https://upi-mini-gateway.vercel.app",
+
     // Development domains
     "https://dev.loanpaymentsystem.xyz",
     "https://www.dev.loanpaymentsystem.xyz",
@@ -46,7 +48,7 @@ const allowedOrigins = [
     // Local development
     "http://localhost:5173",
     "http://localhost:5174",
-    "http://localhost:3000"
+    "http://localhost:3000",
 ].filter(Boolean);
 
 app.use(
@@ -81,8 +83,8 @@ app.get("/", (_req, res) => {
         env: {
             hasMongoUri: Boolean(process.env.MONGO_URI),
             hasJwtSecret: Boolean(process.env.JWT_SECRET),
-            hasAppBaseUrl: Boolean(process.env.APP_BASE_URL)
-        }
+            hasAppBaseUrl: Boolean(process.env.APP_BASE_URL),
+        },
     });
 });
 
@@ -93,12 +95,12 @@ app.use("/api/users", usersRouter);
 
 // 🐛 Sentry debug endpoint for testing
 app.get("/debug-sentry", function mainHandler(req, res) {
-  // Send a log before throwing the error
-  Sentry.logger.info('User triggered test error', {
-    action: 'test_error_endpoint',
-    user_ip: req.ip,
-  });
-  throw new Error("My first Sentry error!");
+    // Send a log before throwing the error
+    Sentry.logger.info("User triggered test error", {
+        action: "test_error_endpoint",
+        user_ip: req.ip,
+    });
+    throw new Error("My first Sentry error!");
 });
 
 // ❌ Sentry error handler - must be after all routes but before other error middleware
