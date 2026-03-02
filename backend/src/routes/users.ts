@@ -202,7 +202,14 @@ router.put("/:id", protect, canManageTargetUser, async (req: AuthRequest, res) =
 
         // Role changes (superadmin only)
         if (role && req.user!.role === "superadmin") {
-            updateData.role = role;
+            const ALLOWED_ROLES: UserRole[] = ["superadmin", "merchant"];
+            if (!ALLOWED_ROLES.includes(role as UserRole)) {
+                return res.status(400).json({
+                    message: "Invalid role. Must be 'superadmin' or 'merchant'.",
+                    code: "INVALID_ROLE"
+                });
+            }
+            updateData.role = role as UserRole;
         }
 
         // Active status changes (superadmin and merchants for their users)
@@ -277,13 +284,5 @@ router.delete("/:id", protect, canManageTargetUser, async (req: AuthRequest, res
         });
     }
 });
-
-// Legacy admin route for backward compatibility
-export const adminRoutes = {
-    // Keep old endpoints working
-    getAllUsers: router.get.bind(router),
-    createUser: router.post.bind(router),
-    deleteUser: router.delete.bind(router)
-};
 
 export default router;
