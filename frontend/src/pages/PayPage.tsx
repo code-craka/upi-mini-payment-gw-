@@ -7,16 +7,15 @@ import { providerUri } from "../lib/upi";
 import type { OrderPublic } from "../types/types";
 
 // icons
-import { BsArrowDown } from "react-icons/bs";
 import googlePay from "../assets/icons/googlepay.png";
 import payTm from "../assets/icons/paytm.svg";
 import phonePay from "../assets/icons/phonepay.svg";
 import upi from "../assets/icons/upi.webp";
 
 const methods = [
-    { name: "PhonePe", icon: phonePay },
-    { name: "Paytm", icon: payTm },
-    { name: "Google Pay", icon: googlePay },
+    { name: "phonepay", icon: phonePay },
+    { name: "paytm", icon: payTm },
+    { name: "googlepay", icon: googlePay },
     { name: "upi", icon: upi },
 ];
 
@@ -27,7 +26,8 @@ export default function PayPage() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(10 * 60); // display-only timer
 
-     const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
+    const api = import.meta.env.VITE_API_URL;
+
     // Fetch order details
     useEffect(() => {
         const fetchOrder = async () => {
@@ -148,99 +148,84 @@ export default function PayPage() {
     };
 
     return (
-        <div className="max-w-lg w-full mx-auto space-y-4 rounded-xl p-4">
-            {/* Timer Header */}
-            <div className="flex justify-between items-center">
-                <p className="text-gray-600 text-sm">
-                    Order will be closed in:
-                </p>
-                <p className="text-xl font-mono ">
-                    <span className="bg-blue-600 text-sm p-1 rounded text-white">
-                        {minutes}
-                    </span>
-                    <span className="text-blue-600">:</span>
-                    <span className="bg-blue-600 text-sm p-1 rounded text-white">
-                        {seconds}
-                    </span>
+<div className="max-w-lg mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6">
+            {/* Header with Timer */}
+    <div className="flex items-center justify-between pb-4 border-b">
+        <p className="text-gray-600">Order expires in:</p>
+        <p className="text-2xl font-mono text-red-500 bg-red-100 px-3 py-1 rounded">
+                    {minutes}:{seconds}
                 </p>
             </div>
 
-            {/* Amount */}
-            <div className="flex justify-between items-center">
-                <p className="text-gray-600 text-sm">Amount</p>
+    {/* Amount Section */}
+            <div className="flex items-center justify-between">
+        <p className="text-gray-600">Amount to Pay</p>
                 <div className="flex items-center gap-3">
-                    <p className="text-lg font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
                         ₹ {order.amount}
                     </p>
                     <CopyButton text={String(order.amount)} label="COPY" />
                 </div>
             </div>
 
-            {/* VPA/UPI */}
-            <div className="flex justify-between items-center">
-                <p className="text-gray-600 text-sm">VPA/UPI</p>
+            {/* VPA Section */}
+    <div className="flex items-center justify-between">
+        <p className="text-gray-600">UPI Address</p>
                 <div className="flex items-center gap-3">
-                    <p className="font-mono font-bold text-lg">
-                        {order.maskedVpa}
-                    </p>
+            <p className="font-mono text-lg bg-gray-100 px-2 py-1 rounded">{order.maskedVpa}</p>
                     <CopyButton text={fullVpa} label="COPY" />
                 </div>
             </div>
 
-            {/* Notice */}
-            <div className="mt-2">
-                <p className="text-red-600 font-bold text-sm">Notice</p>
-                <p className="text-xs ">
-                    1. <span className="text-red-600">One UPI</span> can only
-                    transfer money <span className="text-red-600">once</span>.
-                    <br />
-                    2. Don’t change the{" "}
-                    <span className=" text-red-600">payment amount</span>.
-                    Otherwise, the order cannot be closed.
-                </p>
-            </div>
-
-            {/* Payment Methods with radio buttons */}
-            <div className="flex flex-col mb-6 border-y border-gray-200 divide-y divide-gray-200">
-                {methods.map((m) => (
-                    <label
-                        key={m.name}
-                        className="flex items-center gap-3 p-2 cursor-pointer hover:bg-blue-50"
-                    >
-                        <input
-                            type="radio"
-                            name="paymentMethod"
-                            className="w-5 h-5 accent-blue-600 rounded-full"
-                            onClick={() => onPay(m.name)}
-                        />
-                        <img
-                            src={m.icon}
-                            alt={m.name}
-                            className="w-24 h-12 ml-4 object-contain"
-                        />
-                    </label>
-                ))}
+            {/* Payment Methods */}
+    <div>
+        <p className="text-center text-gray-600 mb-4">
+            Choose a payment method
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {methods.map((m) => (
+                <div
+                    key={m.name}
+                    onClick={() => onPay(m.name)}
+                    className="flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all"
+                >
+                    <img
+                        src={m.icon}
+                        alt={m.name}
+                        className="w-12 h-12 mb-2"
+                    />
+                    <span className="text-sm capitalize">{m.name}</span>
+                </div>
+            ))}
+        </div>
             </div>
 
             {/* UTR Input */}
-            <div className="mb-6">
-                <label className="flex gap-1 items-center mb-2 text-blue-700 text-sm">
-                    <BsArrowDown /> Fill the UTR number after you complete
-                    payment:
+    <div className="pt-4 border-t">
+        <label className="block mb-2 font-semibold text-gray-700">
+            Enter UTR after payment
                 </label>
-                <input
-                    className="w-full p-3 focus:outline-none mb-3 "
-                    placeholder="Enter UTR number"
-                    value={utr}
-                    onChange={(e) => setUtr(e.target.value)}
-                />
-                <button
-                    onClick={submitUtr}
-                    className="w-full bg-blue-600 text-white rounded-full p-3 font-semibold hover:bg-blue-700"
-                >
-                    Submit UTR
-                </button>
+        <div className="flex gap-2">
+            <input
+                className="flex-grow p-3 border rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder="UTR / Transaction ID"
+                value={utr}
+                onChange={(e) => setUtr(e.target.value)}
+            />
+            <button
+                onClick={submitUtr}
+                className="bg-blue-600 text-white rounded-md px-6 py-3 font-semibold hover:bg-blue-700 transition-colors"
+            >
+                Submit
+            </button>
+        </div>
             </div>
+
+            {/* Notice */}
+    <p className="text-xs text-red-600 bg-red-50 p-3 rounded-md mt-4">
+        <strong>Important:</strong> Only transfer from one UPI account. Do not
+        change the payment amount, or the order will not be processed.
+            </p>
         </div>
     );
 }
