@@ -40,7 +40,7 @@ router.post(
                 return res.status(403).json({
                     message: `Cannot create ${ROLE_DISPLAY_NAMES[targetRole]} role`,
                     code: "INSUFFICIENT_PRIVILEGES",
-                    allowedRoles: req.user!.role === "merchant" ? ["user"] : ["superadmin", "merchant", "user"]
+                    allowedRoles: req.user!.role === "merchant" ? [] : ["superadmin", "merchant"]
                 });
             }
 
