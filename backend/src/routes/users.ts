@@ -96,7 +96,7 @@ router.get("/merchants", protect, superadmin, async (req: AuthRequest, res) => {
  *
  * @param {string} username - User's login name (required)
  * @param {string} password - User's password (required)
- * @param {string} role - User's role (optional, defaults to "user")
+ * @param {string} role - User's role (optional, defaults to "merchant"; valid values: "superadmin", "merchant")
  *
  * @returns {object} - { message, user, code }
  */
@@ -111,16 +111,7 @@ router.post("/", protect, superadmin, async (req: AuthRequest, res) => {
             });
         }
 
-        const targetRole: UserRole = role || "user";
-
-        // Check if the creator can create this role
-        if (!PermissionHelpers.canCreateRole(req.user!.role, targetRole)) {
-            return res.status(403).json({
-                message: `Cannot create ${targetRole} role`,
-                code: "INSUFFICIENT_PRIVILEGES",
-                allowedRoles: req.user!.role === "merchant" ? ["user"] : []
-            });
-        }
+        const targetRole: UserRole = role || "merchant";
 
         // Check if username already exists
         const existingUser = await User.findOne({ username });
