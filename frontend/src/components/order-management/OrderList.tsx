@@ -122,7 +122,7 @@ export default function OrderList({ className = "" }: OrderListProps) {
     if (editForm.amount && Number(editForm.amount) !== editingOrder.amount) {
       body.amount = Number(editForm.amount);
     }
-    if (editForm.vpa && editForm.vpa !== editingOrder.vpa) {
+    if (editForm.vpa !== editingOrder.vpa) {
       body.vpa = editForm.vpa;
     }
     if (editForm.expiresAt) {
@@ -170,12 +170,11 @@ export default function OrderList({ className = "" }: OrderListProps) {
           text: errData?.error ?? "Failed to update order."
         });
       }
-    } catch (err: unknown) {
-      const errObj = err as { response?: { data?: { error?: string } } };
+    } catch {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: errObj?.response?.data?.error ?? "Failed to update order."
+        text: "Failed to update order. Please check your connection."
       });
     } finally {
       setSaving(false);
