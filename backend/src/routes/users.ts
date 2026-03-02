@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
     protect,
     superadmin,
-    merchant,
     canManageTargetUser,
     AuthRequest
 } from "../middleware/auth.js";
@@ -89,9 +88,8 @@ router.get("/merchants", protect, superadmin, async (req: AuthRequest, res) => {
  * ✅ RECOMMENDED: Use this endpoint for user creation
  *
  * Permissions by role:
- * - Superadmin: can create any role (superadmin, merchant, user)
- * - Merchant: can only create users under themselves
- * - User: cannot create users
+ * - Superadmin: can create any role (superadmin, merchant)
+ * - Merchant: not permitted (403)
  *
  * Note: Deprecated endpoint /api/auth/register has identical functionality.
  * This RESTful endpoint should be used for all new implementations.
@@ -99,7 +97,6 @@ router.get("/merchants", protect, superadmin, async (req: AuthRequest, res) => {
  * @param {string} username - User's login name (required)
  * @param {string} password - User's password (required)
  * @param {string} role - User's role (optional, defaults to "user")
- * @param {string} parentId - Merchant ID for users (required when superadmin creates users)
  *
  * @returns {object} - { message, user, code }
  */
@@ -153,9 +150,6 @@ router.post("/", protect, superadmin, async (req: AuthRequest, res) => {
                     });
                 }
                 parent = parentId;
-            } else if (req.user!.role === "merchant") {
-                // Merchant creates users under themselves
-                parent = req.user!.userId;
             }
         }
 
