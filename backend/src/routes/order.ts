@@ -559,6 +559,116 @@ router.post("/:orderId/invalidate",
 });
 
 /**
+ * PATCH /:orderId - Superadmin-only order editing (amount, VPA, expiry)
+ */
+router.patch("/:orderId",
+    apiLimiter,
+    protect,
+    superadmin,
+    [
+        body('amount').optional().isFloat({ min: 1 }).withMessage('Amount must be a positive number'),
+        body('vpa').optional().isString().trim().withMessage('VPA must be a string'),
+        body('expiresAt').optional().isISO8601().withMessage('expiresAt must be a valid ISO date')
+    ],
+    async (req: AuthRequest, res: Response) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: "Validation failed",
+                code: "VALIDATION_ERROR",
+                errors: errors.array()
+            });
+        }
+
+        const sanitizedOrderId = InputSanitizer.sanitizeOrderId(req.params.orderId);
+        if (!sanitizedOrderId) {
+            return res.status(400).json({
+                message: "Invalid order ID format",
+                code: "INVALID_ORDER_ID"
+            });
+        }
+
+        const order = await Order.findOne({
+            orderId: sanitizedOrderId,
+            isActive: true
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                message: "Order not found",
+                code: "ORDER_NOT_FOUND"
+            });
+        }
+
+        const nonEditableStatuses = ["INVALIDATED", "EXPIRED"];
+        if (nonEditableStatuses.includes(order.status)) {
+            return res.status(400).json({
+                message: `Cannot edit an order with status ${order.status}`,
+                code: "INVALID_STATUS"
+            });
+        }
+
+        const { amount, vpa, expiresAt } = req.body;
+
+        if (!amount && !vpa && !expiresAt) {
+            return res.status(400).json({
+                message: "At least one field (amount, vpa, expiresAt) must be provided",
+                code: "NO_FIELDS_PROVIDED"
+            });
+        }
+
+        const updateData: Partial<{ amount: number; vpa: string; upiLink: string; expiresAt: Date }> = {};
+
+        if (amount) {
+            updateData.amount = Number(amount);
+        }
+
+        if (vpa) {
+            if (!isValidVpa(vpa)) {
+                return res.status(400).json({
+                    message: "Invalid VPA format",
+                    code: "INVALID_VPA"
+                });
+            }
+            updateData.vpa = vpa;
+            // Rebuild UPI link if VPA changes
+            updateData.upiLink = buildUpiLink({
+                pa: vpa,
+                pn: order.merchantName || "Merchant",
+                am: amount ? Number(amount) : order.amount,
+                tn: order.note,
+                tr: order.orderId,
+            });
+        }
+
+        if (expiresAt) {
+            updateData.expiresAt = new Date(expiresAt);
+        }
+
+        const updatedOrder = await Order.findOneAndUpdate(
+            { orderId: sanitizedOrderId },
+            updateData,
+            { new: true, runValidators: true }
+        )
+            .populate("user", "username role")
+            .populate("merchant", "username")
+            .populate("createdBy", "username role");
+
+        return res.json({
+            message: "Order updated successfully",
+            order: updatedOrder
+        });
+    } catch (error) {
+        console.error("Error updating order:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
+    }
+});
+
+/**
  * DELETE /:orderId - Superadmin-only soft deletion
  */
 router.delete("/:orderId", apiLimiter, protect, superadmin, async (req: AuthRequest, res: Response) => {
