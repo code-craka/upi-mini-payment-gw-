@@ -330,7 +330,7 @@ export default function UserManagement() {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getRoleColor(user.role)} text-white`}>
                                                         <RoleIcon className="w-3 h-3 mr-1" />
-                                                        {user.role === "superadmin" ? "Superadmin" : "Merchant"}
+                                                        {user.role === "superadmin" ? "Superadmin" : user.role === "merchant" ? "Merchant" : "User"}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-slate-300 text-sm">
