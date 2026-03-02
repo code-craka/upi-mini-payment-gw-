@@ -566,7 +566,7 @@ router.patch("/:orderId",
     protect,
     superadmin,
     [
-        body('amount').optional().isFloat({ min: 1 }).withMessage('Amount must be a positive number'),
+        body('amount').optional().isFloat({ gt: 0 }).withMessage('Amount must be a positive number'),
         body('vpa').optional().isString().trim().withMessage('VPA must be a string'),
         body('expiresAt').optional().isISO8601().withMessage('expiresAt must be a valid ISO date')
     ],
@@ -632,11 +632,20 @@ router.patch("/:orderId",
                 });
             }
             updateData.vpa = vpa;
-            // Rebuild UPI link if VPA changes
+            // Rebuild UPI link with new VPA (and new amount if also changing)
             updateData.upiLink = buildUpiLink({
                 pa: vpa,
                 pn: order.merchantName || "Merchant",
                 am: amount ? Number(amount) : order.amount,
+                tn: order.note,
+                tr: order.orderId,
+            });
+        } else if (amount) {
+            // Rebuild UPI link with updated amount but existing VPA
+            updateData.upiLink = buildUpiLink({
+                pa: order.vpa,
+                pn: order.merchantName || "Merchant",
+                am: Number(amount),
                 tn: order.note,
                 tr: order.orderId,
             });
