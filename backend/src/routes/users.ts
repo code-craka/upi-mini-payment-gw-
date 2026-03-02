@@ -103,7 +103,7 @@ router.get("/merchants", protect, superadmin, async (req: AuthRequest, res) => {
  *
  * @returns {object} - { message, user, code }
  */
-router.post("/", protect, merchant, async (req: AuthRequest, res) => {
+router.post("/", protect, superadmin, async (req: AuthRequest, res) => {
     try {
         const { username, password, role, parentId } = req.body;
 
