@@ -12,9 +12,8 @@ const router = Router();
 
 /**
  * GET / - Get users based on role
- * - Superadmin: sees all users
- * - Merchant: sees themselves and their users
- * - User: sees only themselves
+ * - Superadmin: sees all active users
+ * - Merchant: sees themselves
  */
 router.get("/", protect, async (req: AuthRequest, res) => {
     try {
@@ -111,7 +110,14 @@ router.post("/", protect, superadmin, async (req: AuthRequest, res) => {
             });
         }
 
-        const targetRole: UserRole = role || "merchant";
+        const ALLOWED_ROLES: UserRole[] = ["superadmin", "merchant"];
+        if (role && !ALLOWED_ROLES.includes(role as UserRole)) {
+            return res.status(400).json({
+                message: "Invalid role. Must be 'superadmin' or 'merchant'.",
+                code: "INVALID_ROLE"
+            });
+        }
+        const targetRole: UserRole = (role as UserRole) || "merchant";
 
         // Check if username already exists
         const existingUser = await User.findOne({ username });
@@ -122,27 +128,7 @@ router.post("/", protect, superadmin, async (req: AuthRequest, res) => {
             });
         }
 
-        // Determine parent based on role and creator
-        let parent = null;
-        if (targetRole === "user") {
-            if (req.user!.role === "superadmin") {
-                // Superadmin must specify a merchant parent
-                if (!parentId) {
-                    return res.status(400).json({
-                        message: "Merchant parent required for user creation",
-                        code: "MERCHANT_PARENT_REQUIRED"
-                    });
-                }
-                const merchantParent = await User.findById(parentId);
-                if (!merchantParent || merchantParent.role !== "merchant") {
-                    return res.status(400).json({
-                        message: "Invalid merchant parent",
-                        code: "INVALID_MERCHANT_PARENT"
-                    });
-                }
-                parent = parentId;
-            }
-        }
+        const parent = null;
 
         const userData = {
             username,
