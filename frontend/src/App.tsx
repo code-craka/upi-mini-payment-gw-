@@ -27,11 +27,11 @@ function App() {
                         }
                     />
 
-                    {/* User Management - Superadmin & Merchant only */}
+                    {/* User Management - Superadmin only */}
                     <Route
                         path="admin/users"
                         element={
-                            <ProtectedRoute requiredRoles={["superadmin", "merchant"]}>
+                            <ProtectedRoute requiredRoles={["superadmin"]}>
                                 <UserManagementPage />
                             </ProtectedRoute>
                         }
