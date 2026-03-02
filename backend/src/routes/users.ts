@@ -6,7 +6,7 @@ import {
     AuthRequest
 } from "../middleware/auth.js";
 import User, { UserRole } from "../models/User.js";
-import { DataFilters, PermissionHelpers } from "../utils/roleHelpers.js";
+import { DataFilters, PermissionHelpers, ValidationHelpers } from "../utils/roleHelpers.js";
 
 const router = Router();
 
@@ -207,6 +207,12 @@ router.put("/:id", protect, canManageTargetUser, async (req: AuthRequest, res) =
                 return res.status(400).json({
                     message: "Invalid role. Must be 'superadmin' or 'merchant'.",
                     code: "INVALID_ROLE"
+                });
+            }
+            if (!ValidationHelpers.isValidRoleTransition(targetUser.role, role as UserRole, req.user!.role)) {
+                return res.status(400).json({
+                    message: "Invalid role transition. Cannot demote a superadmin.",
+                    code: "INVALID_ROLE_TRANSITION"
                 });
             }
             updateData.role = role as UserRole;
