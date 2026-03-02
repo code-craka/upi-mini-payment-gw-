@@ -87,7 +87,7 @@ export const PermissionHelpers = {
             case "superadmin":
                 return true; // Can create any role
             case "merchant":
-                return targetRole === "user"; // Can only create users
+                return false; // Merchants cannot create any accounts
             case "user":
                 return false; // Cannot create any users
             default:
