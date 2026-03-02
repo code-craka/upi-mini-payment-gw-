@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FiShoppingBag, FiSearch, FiFilter, FiUser, FiCalendar, FiDollarSign, FiClock, FiCheckCircle, FiAlertTriangle, FiEye, FiX } from "react-icons/fi";
+import { FiShoppingBag, FiSearch, FiFilter, FiUser, FiCalendar, FiDollarSign, FiClock, FiCheckCircle, FiAlertTriangle, FiEye, FiX, FiEdit3 } from "react-icons/fi";
+import Swal from "sweetalert2";
 import type { OrderEnhanced, OrderFilters, User } from "../../types/types";
 import { RoleBadge, PermissionGate } from "../rbac";
 
@@ -20,6 +21,13 @@ export default function OrderList({ className = "" }: OrderListProps) {
   });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<OrderEnhanced | null>(null);
+  const [editForm, setEditForm] = useState<{ amount: string; vpa: string; expiresAt: string }>({
+    amount: "",
+    vpa: "",
+    expiresAt: ""
+  });
+  const [saving, setSaving] = useState(false);
 
   // Get current user from localStorage
   useEffect(() => {
@@ -88,6 +96,90 @@ export default function OrderList({ className = "" }: OrderListProps) {
       page: 1,
       limit: 10
     });
+  };
+
+  const openEditModal = (order: OrderEnhanced) => {
+    // Format expiresAt for datetime-local input (YYYY-MM-DDTHH:mm)
+    let expiresAtLocal = "";
+    if (order.expiresAt) {
+      const d = new Date(order.expiresAt);
+      // datetime-local requires format: YYYY-MM-DDTHH:mm
+      const pad = (n: number) => String(n).padStart(2, "0");
+      expiresAtLocal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    setEditingOrder(order);
+    setEditForm({
+      amount: String(order.amount),
+      vpa: order.vpa,
+      expiresAt: expiresAtLocal
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingOrder) return;
+
+    const body: { amount?: number; vpa?: string; expiresAt?: string } = {};
+    if (editForm.amount && Number(editForm.amount) !== editingOrder.amount) {
+      body.amount = Number(editForm.amount);
+    }
+    if (editForm.vpa && editForm.vpa !== editingOrder.vpa) {
+      body.vpa = editForm.vpa;
+    }
+    if (editForm.expiresAt) {
+      const newExpiry = new Date(editForm.expiresAt).toISOString();
+      if (newExpiry !== editingOrder.expiresAt) {
+        body.expiresAt = newExpiry;
+      }
+    }
+
+    if (Object.keys(body).length === 0) {
+      setEditingOrder(null);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${editingOrder._id}`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (response.ok) {
+        setEditingOrder(null);
+        await Swal.fire({
+          icon: "success",
+          title: "Order Updated",
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-right",
+          background: "#111827",
+          color: "#fff"
+        });
+        fetchOrders();
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: errData?.error ?? "Failed to update order."
+        });
+      }
+    } catch (err: unknown) {
+      const errObj = err as { response?: { data?: { error?: string } } };
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: errObj?.response?.data?.error ?? "Failed to update order."
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -337,6 +429,18 @@ export default function OrderList({ className = "" }: OrderListProps) {
                         </button>
                       )}
 
+                      {/* Superadmin-only edit button */}
+                      <PermissionGate requiredRole="superadmin">
+                        {order.status !== "invalidated" && order.status !== "expired" && (
+                          <button
+                            onClick={() => openEditModal(order)}
+                            className="p-2 bg-orange-500/20 hover:bg-orange-500/30 rounded-lg text-orange-400 transition-all duration-300"
+                          >
+                            <FiEdit3 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </PermissionGate>
+
                       {/* Superadmin-only invalidate button */}
                       <PermissionGate requiredRole="superadmin">
                         {order.status !== "expired" && (
@@ -377,6 +481,68 @@ export default function OrderList({ className = "" }: OrderListProps) {
           </div>
         )}
       </div>
+
+      {/* Edit Order Modal */}
+      {editingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-slate-800 rounded-2xl p-6 border border-white/20 shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-5">Edit Order #{editingOrder.orderId}</h3>
+
+            <div className="space-y-4">
+              {/* Amount */}
+              <div>
+                <label className="block text-slate-300 text-sm font-medium mb-1">Amount (₹)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:bg-white/10 focus:border-orange-400 focus:outline-none transition-all duration-300"
+                />
+              </div>
+
+              {/* VPA */}
+              <div>
+                <label className="block text-slate-300 text-sm font-medium mb-1">UPI VPA</label>
+                <input
+                  type="text"
+                  value={editForm.vpa}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, vpa: e.target.value }))}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:bg-white/10 focus:border-orange-400 focus:outline-none transition-all duration-300"
+                />
+              </div>
+
+              {/* Expiry */}
+              <div>
+                <label className="block text-slate-300 text-sm font-medium mb-1">Expiry</label>
+                <input
+                  type="datetime-local"
+                  value={editForm.expiresAt}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, expiresAt: e.target.value }))}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:bg-white/10 focus:border-orange-400 focus:outline-none transition-all duration-300"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setEditingOrder(null)}
+                className="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all duration-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="px-5 py-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-medium transition-all duration-300"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
