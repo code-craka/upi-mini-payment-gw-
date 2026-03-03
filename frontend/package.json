@@ -1,7 +1,7 @@
 {
     "name": "upi-mini-gateway-frontend",
     "private": true,
-    "version": "1.0.0",
+    "version": "2.1.0",
     "type": "module",
     "scripts": {
         "dev": "vite --host 0.0.0.0",
@@ -24,7 +24,13 @@
         "sweetalert2": "^11.23.0",
         "tailwindcss": "^4.1.13"
     },
-    "keywords": ["upi", "payment", "gateway", "react", "typescript"],
+    "keywords": [
+        "upi",
+        "payment",
+        "gateway",
+        "react",
+        "typescript"
+    ],
     "author": {
         "name": "Sayem Abdullah Rihan",
         "email": "hello@techsci.io",

@@ -1,15 +1,15 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-UPI Mini Gateway is a monorepo payment gateway with a React 19 frontend and Express 5 backend. It supports multi-platform UPI payments (PhonePe, Paytm, Google Pay, Native UPI) with a 3-tier RBAC system: `superadmin` → `merchant` → `user`.
+UPI Mini Gateway is a monorepo payment gateway — React 19 frontend + Express 5 backend. Supports PhonePe, Paytm, Google Pay, and native UPI with a **2-role RBAC system**: `superadmin` → `merchant`.
 
-- **Frontend**: `http://localhost:5173` (Vite dev server)
-- **Backend**: `http://localhost:3000`
-- **Production Frontend**: `https://www.loanpayment.live`
-- **Production API**: `https://api.loanpayment.live`
+| | Local | Production |
+|---|---|---|
+| Frontend | `http://localhost:5173` | `https://www.loanpayment.live` |
+| Backend | `http://localhost:3000` | `https://api.loanpayment.live` |
 
 ---
 
@@ -18,27 +18,23 @@ UPI Mini Gateway is a monorepo payment gateway with a React 19 frontend and Expr
 ### Frontend (`/frontend`)
 
 ```bash
-npm run dev       # Start Vite dev server on 0.0.0.0:5173
-npm run build     # TypeScript check + Vite build
+npm run dev       # Vite dev server on 0.0.0.0:5173
+npm run build     # tsc -b + vite build
 npm run lint      # ESLint
-npm run preview   # Preview production build
+npx tsc -b --noEmit  # type-check only
 ```
 
 ### Backend (`/backend`)
 
 ```bash
-npm run dev       # tsx with Sentry instrumentation via --import ./instrument.mjs
+npm run dev       # tsx --import ./instrument.mjs src/server.ts
 npm run build     # tsc → dist/
 npm run start     # node dist/server.js
-npm run create-admin     # node create-superadmin.js
-
-# v2 RBAC migration
-npm run migrate-v2-dry   # Dry run (safe)
-npm run migrate-v2       # Execute migration
-npm run test-migration   # Validate results
+npm run create-admin  # node create-superadmin.js
+npx tsc --noEmit  # type-check only
 ```
 
-The backend uses ESM (`"type": "module"`). All internal imports must use `.js` extensions even for TypeScript source files.
+> The backend uses ESM (`"type": "module"`). All local imports **must** use `.js` extensions even for `.ts` source files.
 
 ---
 
@@ -46,112 +42,154 @@ The backend uses ESM (`"type": "module"`). All internal imports must use `.js` e
 
 ### Backend (`backend/src/`)
 
-Entry point: `index.ts` (app setup) + `server.ts` (listen). Sentry is loaded via `--import ./instrument.mjs` before the app starts.
+- **Entry point**: `server.ts` (listen) imports `index.ts` (app setup, Sentry, CORS, routes)
+- **Vercel**: `@vercel/node` builds `src/server.ts` directly — no `--import` flag support, so Sentry is initialized inline in `index.ts`
 
-**Route → Middleware → Model flow:**
+**Route map:**
 
 ```
-/api/auth      → routes/auth.ts      (login, register [deprecated])
-/api/users     → routes/users.ts     (CRUD, role-filtered)
-/api/orders    → routes/order.ts     (create, list, UTR submit, invalidate)
-/api/dashboard → routes/dashboard.ts (stats, role-filtered)
+/api/auth      → routes/auth.ts       login
+/api/users     → routes/users.ts      CRUD, superadmin only for POST
+/api/orders    → routes/order.ts      create, list, UTR submit, invalidate, PATCH (superadmin)
+/api/dashboard → routes/dashboard.ts  stats, role-filtered
 ```
 
-Every protected route uses `protect` (JWT validation) from `middleware/auth.ts`. After `protect`, `req.user` (id + role) and `req.userData` (full populated User doc) are available.
+**Middleware chain** (every protected route):
 
-Role enforcement uses composable middleware:
-- `protect` — validates JWT, populates `req.user` and `req.userData`
+- `protect` — validates JWT, populates `req.user` (id + role) and `req.userData`
 - `superadmin` — exact match, superadmin only
-- `merchant` — merchant or above
-- `merchantOnly` — exact match, merchant only
-- `canManageTargetUser` — dynamic check using `User.canManage()`
+- `merchant` — merchant or above (superadmin passes too)
 
 **Rate limiters** (`middleware/rateLimiter.ts`):
-- `authLimiter`: 5 req / 15 min (login/register)
-- `apiLimiter`: 100 req / 15 min (general)
-- `orderLimiter`: 50 req / hr (order creation)
+
+- `authLimiter`: 5 req / 15 min
+- `apiLimiter`: 100 req / 15 min
+- `orderLimiter`: 50 req / hr
 - `userManagementLimiter`: 30 req / 15 min
 - `dashboardLimiter`: 50 req / 5 min
 
-**NoSQL injection protection** (express-mongo-sanitize removed for Express 5 compatibility):
-- `QuerySanitizer.sanitizeFilter()` in `utils/queryHelpers.ts`
-- `InputSanitizer` in `utils/errorHandler.ts`
+**NoSQL injection protection** (express-mongo-sanitize removed, Express 5 incompatible):
+
+- `QuerySanitizer.sanitizeFilter()` — `utils/queryHelpers.ts`
+- `InputSanitizer` — `utils/errorHandler.ts`
 - `express-validator` on all mutation routes
 - Mongoose schema validation
 
-### RBAC Core (`backend/src/utils/roleHelpers.ts`)
+### RBAC (`backend/src/utils/roleHelpers.ts`)
 
-Role hierarchy: `user: 1`, `merchant: 2`, `superadmin: 3`
+**2 active roles** (user role retired — no new creation):
+
+- `superadmin` — creates merchants, edits/invalidates any order, global data access
+- `merchant` — generates payment links, views own orders, verifies UTRs
 
 Key exports:
-- `ROLE_HIERARCHY` — numeric level map
-- `isRoleAtOrAbove(userRole, requiredRole)` — hierarchy comparison
-- `DataFilters.getUserFilter(role, userId)` — MongoDB filter for user queries
-- `DataFilters.getOrderFilter(role, userId)` — MongoDB filter for order queries
-- `PermissionHelpers.canCreateRole(creatorRole, targetRole)` — creation permission
+
+- `DataFilters.getUserFilter(role, userId)` — scoped MongoDB filter
+- `DataFilters.getOrderFilter(role, userId)` — scoped MongoDB filter
+- `PermissionHelpers.canCreateRole(creatorRole, targetRole)` — superadmin only
 - `PermissionHelpers.canInvalidateOrder(role)` — superadmin only
+- `ValidationHelpers.isValidRoleTransition(from, to)` — prevents superadmin demotion
 
 ### Data Models
 
 **User** (`src/models/User.ts`):
-- `role: "superadmin" | "merchant" | "user"`
-- `parent: ObjectId` — merchant parent for `user` role (required, validated in pre-save hook)
-- `canManage(targetUser: IUser): boolean` — instance method for permission checks
-- Merchants/superadmins cannot have a `parent`; users must have a merchant `parent`
+
+- `role: "superadmin" | "merchant" | "user"` (user retired)
+- `parent: ObjectId` — merchant parent (legacy, for existing user records)
+- `canManage(targetUser): boolean` — instance permission check
 
 **Order** (`src/models/Order.ts`):
-- `user` — the paying user
+
 - `merchant` — auto-assigned from `user.parent` at creation
-- `createdBy` — who created the order (may differ from `user`)
+- `createdBy` — who created (may differ from `user`)
 - `status`: `PENDING | SUBMITTED | VERIFIED | EXPIRED | CANCELLED | INVALIDATED`
-- `invalidatedBy` / `invalidatedAt` — superadmin invalidation tracking
+- `invalidatedBy` / `invalidatedAt` — superadmin audit trail
 
 ### Frontend (`frontend/src/`)
 
-**Routing** (`App.tsx`): React Router v7 with `ProtectedRoute` wrapping admin routes.
-
-**Auth state**: Stored in `localStorage` as `token` (JWT) and `user` (JSON). The `Layout.tsx` reads both directly. No Redux for auth — Redux Toolkit is present but auth is localStorage-based.
+**Auth state**: `localStorage` — `token` (JWT) + `user` (JSON). No Redux for auth.
 
 **Key directories:**
+
 - `components/rbac/` — `ProtectedRoute`, `PermissionGate`, `RoleBadge`, `UserHierarchy`
-- `components/dashboards/` — `SuperadminDashboard`, `MerchantDashboard`, `UserDashboard`
-- `components/order-management/` — `OrderList`, `SuperadminOrderTools`
-- `components/user-management/` — `UserCard`, `UserCreateForm`
-- `lib/upi.ts` — `providerUri()` builds deep links for PhonePe/Paytm/GPay/UPI
-- `types/types.ts` — shared TypeScript interfaces (`User`, `OrderEnhanced`, `OrderPublic`, etc.)
+- `components/dashboards/` — `SuperadminDashboard`, `MerchantDashboard`
+- `components/order-management/` — `OrderList` (with superadmin edit modal), `SuperadminOrderTools`
+- `components/admin/` — `UserManagement` (superadmin only)
+- `pages/PayPage.tsx` — public payment page, responsive UPI deep-link grid + UTR input
+- `pages/PaymentGenerator.tsx` — merchant payment link generator
+- `lib/upi.ts` — `providerUri()` builds PhonePe/Paytm/GPay/UPI deep links
+- `types/types.ts` — `User`, `OrderEnhanced`, `OrderPublic`, etc.
 
-**Public payment page** (`/pay/:orderId`): Unauthenticated route. Fetches order by ID, shows UPI deep links (PhonePe, Paytm, Google Pay, generic UPI), and allows UTR submission.
-
-**API calls**: All use `axios` with `VITE_API_URL` env var, falling back to `https://api.loanpayment.live`.
+**Public payment page** (`/pay/:orderId`): unauthenticated, shows UPI deep links, UTR submission.
 
 ---
 
 ## Key Patterns
 
-### Adding a new protected backend route
+### New protected backend route
 
 1. Import `protect` + role middleware from `middleware/auth.ts`
-2. Use `DataFilters.getOrderFilter()` / `DataFilters.getUserFilter()` for role-scoped DB queries
-3. Add `express-validator` body/query validation before the handler
+2. Apply `DataFilters.getOrderFilter()` / `getUserFilter()` for role-scoped queries
+3. Add `express-validator` validation before the handler
 4. Apply the appropriate rate limiter
 
-### Adding a frontend admin feature
+### New frontend admin feature
 
-1. Wrap the route in `ProtectedRoute` with `requiredRoles`
-2. Use `PermissionGate` for conditional rendering within components
-3. Read `user` from `localStorage.getItem("user")` parsed as `User` type
+1. Wrap route in `<ProtectedRoute requiredRoles={[...]}>`
+2. Use `<PermissionGate requiredRole="superadmin">` for conditional rendering
+3. Read `user` from `JSON.parse(localStorage.getItem("user"))` as `User` type
 
-### Environment variables
+### API error shape
 
-Backend reads from `.env.local` via `dotenv`. Required:
-- `MONGO_URI` — MongoDB Atlas connection string
-- `JWT_SECRET` — minimum 256-bit secret
-- `APP_BASE_URL` — frontend origin (for CORS)
-- `API_BASE_URL` — backend URL
-- `SENTRY_DSN` — optional, controls Sentry
+```json
+{ "message": "...", "code": "ERROR_CODE" }
+```
 
-Frontend reads Vite env vars (prefix `VITE_`):
-- `VITE_API_URL` — backend base URL
+Validation errors: `{ "code": "VALIDATION_ERROR", "errors": [...] }`
+
+### ESM imports (backend)
+
+```typescript
+import { something } from "./roleHelpers.js";  // .js, not .ts
+```
+
+### VPA / UPI link
+
+- `isValidVpa(vpa)` — `backend/src/utils/upi.ts`
+- `buildUpiLink({ pa, pn, am, tn, tr })` — rebuild whenever amount OR vpa changes
+
+---
+
+## Environment Variables
+
+**Backend** (`.env.local`):
+
+```
+MONGO_URI        MongoDB Atlas connection string
+JWT_SECRET       256-bit minimum
+APP_BASE_URL     frontend origin for CORS (https://www.loanpayment.live)
+API_BASE_URL     backend URL (https://api.loanpayment.live)
+SENTRY_DSN       optional — enables Sentry when set
+NODE_ENV         production | development
+```
+
+**Frontend** (`.env.local`, prefix `VITE_`):
+
+```
+VITE_API_URL          backend base URL
+VITE_FRONTEND_URL     frontend URL
+VITE_SENTRY_DSN       optional
+VITE_APP_VERSION      app version string
+```
+
+---
+
+## Deployment (Vercel)
+
+- **Frontend project**: auto-deploys from `main`, root = `/frontend`
+- **Backend project**: auto-deploys from `main`, root = `backend`, entry = `src/server.ts`
+- `backend/vercel.json` must NOT mix `routes` + `headers` — Vercel rejects the combination
+- Sentry initialized inside `index.ts` (Vercel's `@vercel/node` has no `--import` flag)
 
 ---
 
@@ -160,7 +198,7 @@ Frontend reads Vite env vars (prefix `VITE_`):
 ```
 feat:     new feature
 fix:      bug fix
-docs:     documentation
+docs:     documentation only
 security: security fix
-chore:    maintenance
+chore:    maintenance / tooling
 ```

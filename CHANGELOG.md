@@ -1,258 +1,120 @@
 # Changelog
 
-All notable changes to the UPI Mini Gateway project will be documented in this file.
+All notable changes to UPI Mini Gateway are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Planned
-- [ ] Multi-language support (Hindi, English)
-- [ ] Advanced analytics dashboard
-- [ ] Webhook integration for payment notifications
-- [ ] Mobile app development
-- [ ] Advanced fraud detection
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ---
 
-## [1.0.0] - 2024-12-23
+## [2.1.0] — 2026-03-03
 
-### 🎉 Initial Release
+### Added
 
-This is the first stable release of UPI Mini Gateway, a modern and secure payment gateway solution.
+- **Claude AI cache infrastructure**: 3-tier caching via Upstash Redis, Mem0, and PostgreSQL with PreToolUse/PostToolUse hooks and intelligent category detection (payments / users / orders / analytics / configuration)
+- **Superadmin order edit modal**: PATCH `/api/orders/:id` endpoint + frontend modal to edit amount, VPA, and expiry on any live order
+- **PayPage responsive redesign**: Payment methods in 2×4 responsive grid with icon + label; side-by-side UTR input + Submit button; improved timer, amount, and VPA visual hierarchy
 
-### ✨ Added
+### Changed
 
-#### Core Features
-- **Payment Gateway**: Complete UPI payment link generation and processing
-- **Multi-Platform Support**: PhonePe, Paytm, Google Pay, and native UPI support
-- **QR Code Generation**: Dynamic QR codes for seamless payment experience
-- **Timer-based Expiry**: Automatic payment link expiration with countdown
-- **UTR Tracking**: Payment verification through UTR (Unique Transaction Reference) submission
+- **Domain migration**: `pay.loanpaymentsystem.xyz` → `https://www.loanpayment.live`; `api.loanpaymentsystem.xyz` → `https://api.loanpayment.live`
+- **Sentry initialization**: Moved from `--import ./instrument.mjs` to inline `index.ts` for Vercel `@vercel/node` compatibility
+- **vercel.json**: Removed conflicting `headers` block (cannot coexist with `routes`); entry point changed from `dist/server.js` to `src/server.ts`
+- **RBAC**: Collapsed 3-role system (superadmin / merchant / user) to 2 active roles (superadmin + merchant); user role retired from creation
 
-#### Frontend (React 19 + TypeScript)
-- **Modern UI/UX**: Glassmorphism design with dark gradients and purple accents
-- **Responsive Design**: Mobile-first approach with perfect mobile compatibility
-- **Smooth Animations**: Framer Motion integration for fluid user interactions
-- **Component Architecture**: Professional, reusable component structure
-- **State Management**: Redux Toolkit for efficient state handling
-- **Type Safety**: Full TypeScript implementation with strict type checking
+### Fixed
 
-#### Backend (Node.js + Express 5)
-- **RESTful API**: Clean and documented API endpoints
-- **MongoDB Integration**: Mongoose ODM with optimized schemas
-- **JWT Authentication**: Secure token-based authentication system
-- **Password Security**: bcrypt hashing with 12 salt rounds
-- **Rate Limiting**: API protection against abuse and DDoS
-- **CORS Configuration**: Secure cross-origin resource sharing
-- **Input Validation**: Comprehensive request validation and sanitization
+- **Backend 500 on root route**: Caused by uninitalized Sentry — resolved by moving `Sentry.init()` inline
+- **VPA empty-string guard**: Removed incorrect guard that blocked valid VPA updates
+- **Fetch error handling in edit modal**: Corrected error propagation from PATCH endpoint
 
-#### Security Features
-- **GitHub Advanced Security**: CodeQL integration for automated security scanning
-- **Sentry Monitoring**: Real-time error tracking and performance monitoring
-- **Environment Security**: Secure environment variable management
-- **SQL Injection Prevention**: Parameterized queries and input validation
-- **XSS Protection**: Content Security Policy and input sanitization
-- **CSRF Protection**: Cross-site request forgery prevention
+### Security
 
-#### DevOps & Infrastructure
-- **Vercel Deployment**: Production-ready deployment for both frontend and backend
-- **MongoDB Atlas**: Cloud database with SSL/TLS encryption
-- **CI/CD Pipeline**: GitHub Actions for automated testing and deployment
-- **Domain Configuration**: Custom domains with SSL certificates
-- **Environment Management**: Separate staging and production environments
+- **28 npm vulnerabilities resolved** (16 high, 11 moderate, 1 low → 0)
+  - Frontend: axios (DoS), react-router (CSRF/XSS/redirect), rollup (path traversal), minimatch (ReDoS ×6), tar (arbitrary write ×5), ajv (ReDoS), js-yaml (prototype pollution), vite (fs.deny bypass)
+  - Backend: jws (HMAC bypass), validator (URL bypass), minimatch (ReDoS ×3), body-parser (DoS), qs (DoS ×2), lodash (prototype pollution), @sentry/node (header leak), diff (DoS)
+- `sendDefaultPii: false` in Sentry to prevent sensitive header leakage
 
-#### Monitoring & Analytics
-- **Error Tracking**: Comprehensive error monitoring with Sentry
-- **Performance Monitoring**: Real-time performance metrics and profiling
-- **Session Replay**: User interaction recording for debugging
-- **Security Scanning**: Weekly automated security vulnerability scans
-- **Dependency Monitoring**: Automated dependency vulnerability detection
+### Removed
 
-### 🔧 Technical Specifications
-
-#### Frontend Stack
-- React 19.1.1
-- TypeScript 5.8.3
-- Vite 7.1.2
-- Tailwind CSS 4.1.13
-- Framer Motion 12.23.16
-- Redux Toolkit 2.9.0
-- Axios 1.11.0
-
-#### Backend Stack
-- Node.js 18+
-- Express 5.1.0
-- TypeScript 5.9.2
-- MongoDB 8.18.0 (Mongoose)
-- bcryptjs 3.0.2
-- jsonwebtoken 9.0.2
-- express-rate-limit 8.1.0
-
-#### Database Schema
-- **Users Collection**: Authentication and user management
-- **Orders Collection**: Payment tracking and order management
-- **Indexes**: Optimized for query performance
-- **Validation**: Mongoose schema validation
-
-#### Security Measures
-- JWT tokens with secure secret keys
-- Password hashing with bcrypt (12 rounds)
-- Rate limiting (100 requests per 15 minutes)
-- CORS protection for specific domains
-- Input validation and sanitization
-- Environment variable security
-
-### 🌐 Production Domains
-
-#### Live URLs
-- **Frontend**: https://pay.loanpaymentsystem.xyz
-- **Backend API**: https://api.loanpaymentsystem.xyz
-
-#### Database
-- **MongoDB Atlas**: Secure cloud database
-- **Connection**: SSL/TLS encrypted
-- **Backup**: Automated daily backups
-- **Monitoring**: Real-time performance monitoring
-
-### 📊 Performance Metrics
-
-#### Frontend Performance
-- **First Contentful Paint**: < 1.5s
-- **Largest Contentful Paint**: < 2.5s
-- **Cumulative Layout Shift**: < 0.1
-- **First Input Delay**: < 100ms
-
-#### Backend Performance
-- **API Response Time**: < 200ms average
-- **Database Query Time**: < 50ms average
-- **Uptime**: 99.9% target
-- **Concurrent Users**: 1000+ supported
-
-### 🔐 Security Features
-
-#### Authentication & Authorization
-- JWT-based stateless authentication
-- Secure password hashing (bcrypt)
-- Role-based access control
-- Session management
-
-#### Data Protection
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection
-- CSRF protection
-- Rate limiting
-
-#### Infrastructure Security
-- HTTPS/SSL encryption
-- Secure environment variables
-- Database encryption at rest
-- Network security (CORS, CSP)
-
-### 📱 User Experience
-
-#### Payment Flow
-1. User generates payment link
-2. Dynamic QR code creation
-3. Multi-platform UPI support
-4. Real-time payment status
-5. UTR submission and verification
-6. Order completion
-
-#### Admin Features
-- User management dashboard
-- Payment analytics and reporting
-- Order tracking and management
-- System health monitoring
-
-### 🚀 Deployment
-
-#### Production Environment
-- **Frontend**: Vercel deployment with custom domain
-- **Backend**: Vercel serverless functions
-- **Database**: MongoDB Atlas cloud
-- **CDN**: Global content delivery
-- **SSL**: Automatic HTTPS certificates
-
-#### Development Environment
-- Local development setup
-- Hot reload for both frontend and backend
-- Environment variable configuration
-- Database seeding scripts
-
-### 📚 Documentation
-
-#### Included Documentation
-- Comprehensive README.md
-- API documentation
-- Security guidelines
-- Deployment instructions
-- Contributing guidelines
-
-### 🧪 Testing
-
-#### Quality Assurance
-- TypeScript strict mode
-- ESLint code quality
-- Security scanning (CodeQL)
-- Performance monitoring
-- Error tracking
+- 31 stale files: one-off fix MDs, deployment guides, caching system docs, shell scripts, copilot instructions
+- Global cache hook scripts that were failing on every tool call due to missing env vars
 
 ---
 
-## Version History Summary
+## [2.0.0] — 2024-09-23
 
-| Version | Release Date | Major Features |
-|---------|-------------|----------------|
-| 1.0.0   | 2024-12-23  | Initial release with full UPI gateway functionality |
+### Added
 
----
+- **3-tier RBAC system**: `superadmin` → `merchant` → `user` with full data isolation
+- **DataFilters utility**: Role-scoped MongoDB query filters (`getUserFilter`, `getOrderFilter`)
+- **PermissionHelpers**: `canCreateRole`, `canInvalidateOrder` with privilege escalation prevention
+- **ValidationHelpers**: `isValidRoleTransition` to prevent superadmin demotion
+- **Order merchant tracking**: `merchant` field auto-assigned from `user.parent` at order creation
+- **Superadmin invalidation**: `invalidatedBy` / `invalidatedAt` audit trail on orders
+- **Frontend RBAC components**: `ProtectedRoute`, `PermissionGate`, `RoleBadge`, `UserHierarchy`
+- **Role-specific dashboards**: `SuperadminDashboard`, `MerchantDashboard`, `UserDashboard`
+- **OrderList**: Advanced order management with role-filtered views and invalidation
+- **UserManagement**: Role-based user creation with parent assignment
+- **Migration scripts**: `scripts/migrate-to-v2.js` and `scripts/test-migration.js`
 
-## Migration Guide
+### Changed
 
-### From Development to v1.0.0
+- User model: added `parent` (ObjectId), `canManage()` instance method, pre-save validation
+- Order model: added `merchant`, `createdBy`, `invalidatedBy`, `invalidatedAt`, `metadata`
+- Auth middleware: `protect` now populates `req.userData` (full User doc)
+- All routes: role-based data filtering applied automatically
 
-This is the initial release, so no migration is required. For fresh installations, please follow the [Quick Start Guide](README.md#quick-start) in the README.
+### Security
 
----
-
-## Breaking Changes
-
-### v1.0.0
-- Initial release - no breaking changes
-
----
-
-## Security Updates
-
-### v1.0.0
-- Initial security implementation with industry best practices
-- CodeQL security scanning enabled
-- Sentry error monitoring configured
-- JWT authentication with secure defaults
-- bcrypt password hashing (12 rounds)
-- Rate limiting and CORS protection
+- NoSQL injection protection via `QuerySanitizer` (express-mongo-sanitize removed for Express 5 compat)
+- Multi-layer validation: express-validator + Mongoose schema + input sanitizer
+- Privilege escalation prevention at route and model level
 
 ---
 
-## Contributors
+## [1.0.1] — 2024-10-04
 
-### v1.0.0
-- **Sayem Abdullah Rihan** ([@code-craka](https://github.com/code-craka)) - Project Creator & Lead Developer
+### Fixed
+
+- Superadmin user creation error — incorrect role validation logic
+- Logger format string injection vulnerability
+- JWT token expiry edge cases
+
+### Security
+
+- Added rate limiting to order creation endpoint (`orderLimiter`)
+- Added JSON payload size limits (`10mb`) to prevent DoS
+- Fixed CodeQL warnings on log injection (#67–#81)
+- Updated axios, vite to patch Dependabot alerts #1–#4
 
 ---
 
-## Support
+## [1.0.0] — 2024-09-21
 
-For questions, bug reports, or feature requests, please:
+### Added
 
-1. Check the [README.md](README.md) for common solutions
-2. Search existing [GitHub Issues](https://github.com/code-craka/UPI_MINI_GATEWAY/issues)
-3. Create a new issue if needed
-4. Contact: [hello@techsci.io](mailto:hello@techsci.io)
+- Initial release: UPI payment gateway with PhonePe, Paytm, Google Pay, native UPI support
+- Dynamic QR code generation and countdown timer expiry
+- UTR submission and payment verification flow
+- JWT authentication + bcrypt password hashing (12 rounds)
+- MongoDB Atlas integration with Mongoose schemas
+- React 19 frontend with Tailwind CSS glassmorphism design
+- Framer Motion animations
+- Rate limiting: 100 req / 15 min general, 5 req / 15 min auth
+- CORS configuration
+- Sentry integration (frontend + backend)
+- GitHub Actions CI/CD with CodeQL security scanning
+- Vercel deployment for frontend and backend
+- Production domains: `pay.loanpaymentsystem.xyz` / `api.loanpaymentsystem.xyz`
 
 ---
 
-*This changelog is automatically updated with each release. For the latest development changes, see the [commit history](https://github.com/code-craka/UPI_MINI_GATEWAY/commits/main).*
+## Version Summary
+
+| Version | Date | Highlights |
+|---|---|---|
+| 2.1.0 | 2026-03-03 | Domain migration, 0 vulnerabilities, PayPage redesign, Vercel fixes, cache infra |
+| 2.0.0 | 2024-09-23 | 3-tier RBAC, data isolation, frontend RBAC components, migration tooling |
+| 1.0.1 | 2024-10-04 | Bug fixes, security patches, rate limiting improvements |
+| 1.0.0 | 2024-09-21 | Initial release |
