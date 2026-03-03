@@ -104,7 +104,7 @@ OrderSchema.pre("save", async function (next) {
 
             if (user.role === "user" && user.parent) {
                 this.merchant = user.parent;
-            } else if (user.role === "merchant") {
+            } else if (user.role === "merchant" || user.role === "superadmin") {
                 this.merchant = user._id;
             } else {
                 return next(new Error("Cannot determine merchant for order"));
