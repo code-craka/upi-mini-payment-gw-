@@ -1,9 +1,8 @@
-// Sentry is loaded via --import flag before app starts
-import * as Sentry from "@sentry/node";
-
 import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.js";
 import dashboardRouter from "./routes/dashboard.js";
@@ -13,6 +12,20 @@ import { globalErrorHandler, notFoundHandler } from "./utils/errorHandler.js";
 import { requestLogger } from "./utils/logger.js";
 
 config({ path: ".env.local" });
+
+// Initialize Sentry here so it works both locally and on Vercel
+if (process.env.SENTRY_DSN) {
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        environment: process.env.NODE_ENV || "development",
+        integrations: [nodeProfilingIntegration()],
+        enableLogs: true,
+        tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+        profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+        sendDefaultPii: false,
+        release: process.env.APP_VERSION || "1.0.1",
+    });
+}
 
 const app = express();
 
@@ -92,18 +105,10 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/users", usersRouter);
 
-// 🐛 Sentry debug endpoint for testing
-app.get("/debug-sentry", function mainHandler(req, res) {
-    // Send a log before throwing the error
-    Sentry.logger.info("User triggered test error", {
-        action: "test_error_endpoint",
-        user_ip: req.ip,
-    });
-    throw new Error("My first Sentry error!");
-});
-
 // ❌ Sentry error handler - must be after all routes but before other error middleware
-Sentry.setupExpressErrorHandler(app);
+if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+}
 
 // ✅ Handle 404 errors
 app.use(notFoundHandler);
