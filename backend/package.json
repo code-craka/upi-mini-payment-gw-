@@ -1,6 +1,6 @@
 {
     "name": "upi-mini-gateway-backend",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Secure UPI Payment Gateway Backend with Express, MongoDB, and JWT Authentication",
     "main": "index.js",
     "scripts": {
