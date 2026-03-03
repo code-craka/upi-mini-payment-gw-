@@ -86,9 +86,20 @@ router.post("/",
             platform: req.get("X-Platform") || "web"
         };
 
+        // Determine merchant: merchants use their own ID, superadmins use their own ID,
+        // users inherit their parent merchant ID
+        const userData = req.userData!;
+        let merchantId: any;
+        if (userData.role === "user" && userData.parent) {
+            merchantId = userData.parent;
+        } else {
+            merchantId = userData._id;
+        }
+
         await Order.create({
             user: req.user?.userId,
             createdBy: req.user?.userId,
+            merchant: merchantId,
             orderId,
             amount,
             vpa,
