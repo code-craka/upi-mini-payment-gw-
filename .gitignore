@@ -16,8 +16,9 @@ dist-ssr
 
 # Claude Code
 .claude/
-.claude/CLAUDE.md
 
+# Serena
+.serena/
 
 # Editor directories and files
 .vscode/*
