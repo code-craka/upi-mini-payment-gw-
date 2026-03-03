@@ -1,4 +1,4 @@
-// Sentry is now loaded via --import flag
+// Sentry is loaded via --import flag before app starts
 import * as Sentry from "@sentry/node";
 
 import cors from "cors";
