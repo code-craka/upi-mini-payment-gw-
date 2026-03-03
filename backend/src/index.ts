@@ -35,14 +35,13 @@ app.use(requestLogger);
 const allowedOrigins = [
     process.env.APP_BASE_URL,
     // Production domains
-    "https://pay.loanpaymentsystem.xyz",
-    "https://www.pay.loanpaymentsystem.xyz",
+    "https://www.loanpayment.live",
+    "https://loanpayment.live",
     "https://upi-mini-gateway.vercel.app",
 
-    // Development domains
-    "https://dev.loanpaymentsystem.xyz",
-    "https://www.dev.loanpaymentsystem.xyz",
     // Legacy domains (keep for transition)
+    "https://pay.loanpaymentsystem.xyz",
+    "https://www.pay.loanpaymentsystem.xyz",
     "https://negoman.com",
     "https://www.negoman.com",
     // Local development

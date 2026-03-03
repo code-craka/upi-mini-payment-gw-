@@ -1,16 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import {
   FiShield,
   FiLink,
   FiDollarSign,
+  FiAtSign,
   FiShoppingBag,
   FiCheckCircle,
   FiRefreshCw,
 } from "react-icons/fi";
 import axios from "axios";
 import Swal from "sweetalert2";
-import type { OrderEnhanced } from "../../types/types";
+import type { User, OrderEnhanced } from "../../types/types";
 import { RoleBadge } from "../rbac";
 
 interface MerchantDashboardProps {
@@ -18,10 +19,10 @@ interface MerchantDashboardProps {
 }
 
 const FRONTEND_URL =
-  import.meta.env.VITE_FRONTEND_URL ?? "https://pay.loanpaymentsystem.xyz";
+  import.meta.env.VITE_FRONTEND_URL ?? "https://www.loanpayment.live";
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
-function statusBadge(status: string): React.ReactNode {
+function statusBadge(status: string): ReactNode {
   const map: Record<string, string> = {
     pending: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
     verified: "bg-green-500/20 text-green-300 border border-green-500/30",
@@ -38,14 +39,21 @@ function statusBadge(status: string): React.ReactNode {
 }
 
 export default function MerchantDashboard({ className = "" }: MerchantDashboardProps) {
+  const [currentUser] = useState<Partial<User>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}") as Partial<User>;
+    } catch {
+      return {};
+    }
+  });
+
   const [amount, setAmount] = useState<string>("");
   const [vpa, setVpa] = useState<string>("");
   const [generating, setGenerating] = useState(false);
 
   const [orders, setOrders] = useState<OrderEnhanced[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
@@ -75,7 +83,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleGenerateLink = async (e: React.FormEvent) => {
+  const handleGenerateLink = async (e: FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
     if (!parsedAmount || parsedAmount < 1) {
@@ -108,9 +116,9 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      const orderId: string =
-        res.data?.orderId ?? res.data?._id ?? res.data?.order?.orderId ?? "";
-      const paymentLink = `${FRONTEND_URL}/pay/${orderId}`;
+      const data = res.data as { orderId: string; [key: string]: unknown };
+      if (!data.orderId) throw new Error("Server returned no orderId");
+      const paymentLink = `${FRONTEND_URL}/pay/${data.orderId}`;
 
       const result = await Swal.fire({
         icon: "success",
@@ -160,6 +168,8 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
   };
 
   const handleVerifyUTR = async (order: OrderEnhanced) => {
+    setVerifyingId(order._id);
+
     const { value: utr, isConfirmed } = await Swal.fire({
       title: `Verify UTR for #${order.orderId}`,
       input: "text",
@@ -176,7 +186,10 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
       },
     });
 
-    if (!isConfirmed || !utr) return;
+    if (!isConfirmed || !utr) {
+      setVerifyingId(null);
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -208,6 +221,8 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
         background: "#1e293b",
         color: "#f1f5f9",
       });
+    } finally {
+      setVerifyingId(null);
     }
   };
 
@@ -226,7 +241,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
               Merchant Dashboard
             </h1>
           </div>
-          <p className="text-slate-400">Welcome back, {user.username}</p>
+          <p className="text-slate-400">Welcome back, {currentUser.username ?? "Merchant"}</p>
         </div>
         <RoleBadge role="merchant" size="lg" />
       </div>
@@ -261,7 +276,7 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
               UPI VPA
             </label>
             <div className="relative">
-              <FiShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <FiAtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
                 value={vpa}
@@ -349,7 +364,8 @@ export default function MerchantDashboard({ className = "" }: MerchantDashboardP
                       {order.status === "pending" ? (
                         <button
                           onClick={() => handleVerifyUTR(order)}
-                          className="flex items-center space-x-1 px-3 py-1 bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 rounded-lg text-green-300 text-xs font-medium transition-colors"
+                          disabled={verifyingId === order._id}
+                          className="flex items-center space-x-1 px-3 py-1 bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 rounded-lg text-green-300 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <FiCheckCircle className="w-3.5 h-3.5" />
                           <span>Verify UTR</span>

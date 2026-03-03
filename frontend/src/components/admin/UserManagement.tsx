@@ -23,7 +23,7 @@ export default function UserManagement() {
     const [creating, setCreating] = useState(false);
 
     const api =
-        import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
+        import.meta.env.VITE_API_URL || "https://api.loanpayment.live";
     const token = localStorage.getItem("token");
 
     const fetchUsers = useCallback(async () => {

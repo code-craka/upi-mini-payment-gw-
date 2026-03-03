@@ -13,7 +13,7 @@ export default function PaymentGenerator() {
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const api = import.meta.env.VITE_API_URL || "https://api.loanpaymentsystem.xyz";
+    const api = import.meta.env.VITE_API_URL || "https://api.loanpayment.live";
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -35,7 +35,7 @@
     "bugs": {
         "url": "https://github.com/code-craka/UPI_MINI_GATEWAY/issues"
     },
-    "homepage": "https://api.loanpaymentsystem.xyz",
+    "homepage": "https://api.loanpayment.live",
     "type": "module",
     "ts-node": {
         "esm": true,

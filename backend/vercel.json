@@ -23,7 +23,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://pay.loanpaymentsystem.xyz, https://www.pay.loanpaymentsystem.xyz, https://dev.loanpaymentsystem.xyz, https://www.dev.loanpaymentsystem.xyz"
+          "value": "https://www.loanpayment.live, https://loanpayment.live"
         },
         {
           "key": "Access-Control-Allow-Methods",

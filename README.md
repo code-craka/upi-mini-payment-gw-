@@ -26,7 +26,7 @@
 
 **A secure, modern UPI payment gateway with beautiful glassmorphism design and enterprise-grade features**
 
-[🌐 Live Demo](https://pay.loanpaymentsystem.xyz) • [📖 Documentation](docs/) • [🚀 Quick Start](#quick-start) • [🛡️ Security](SECURITY.md)
+[🌐 Live Demo](https://www.loanpayment.live) • [📖 Documentation](docs/) • [🚀 Quick Start](#quick-start) • [🛡️ Security](SECURITY.md)
 
 </div>
 
@@ -132,8 +132,8 @@ node create-superadmin.js
 
 #### Frontend (.env.local)
 ```env
-VITE_API_URL=https://api.loanpaymentsystem.xyz
-VITE_FRONTEND_URL=https://pay.loanpaymentsystem.xyz
+VITE_API_URL=https://api.loanpayment.live
+VITE_FRONTEND_URL=https://www.loanpayment.live
 VITE_SENTRY_DSN=your_sentry_frontend_dsn
 VITE_APP_VERSION=1.0.0
 ```
@@ -142,8 +142,8 @@ VITE_APP_VERSION=1.0.0
 ```env
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/
 JWT_SECRET=your_super_secure_jwt_secret_here
-APP_BASE_URL=https://pay.loanpaymentsystem.xyz
-API_BASE_URL=https://api.loanpaymentsystem.xyz
+APP_BASE_URL=https://www.loanpayment.live
+API_BASE_URL=https://api.loanpayment.live
 SENTRY_DSN=your_sentry_backend_dsn
 NODE_ENV=production
 ```
@@ -252,8 +252,8 @@ cd frontend && npm run dev
 ## 🌐 Deployment
 
 ### Production Domains
-- **Frontend**: https://pay.loanpaymentsystem.xyz
-- **Backend API**: https://api.loanpaymentsystem.xyz
+- **Frontend**: https://www.loanpayment.live
+- **Backend API**: https://api.loanpayment.live
 
 ### Vercel Configuration
 Both frontend and backend are deployed on Vercel with:
